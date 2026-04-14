@@ -1,0 +1,26 @@
+package com.williamsel.sarc.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val SarcGreen        = Color(0xFF00A878)
+val SarcGreenDark    = Color(0xFF008F66)
+val SarcGreenLight   = Color(0xFFE8F5E9)
+val BackgroundLight  = Color(0xFFF5F5F5)
+val SurfaceWhite     = Color(0xFFFFFFFF)
+val FieldBackground  = Color(0xFFF0F0F0)
+val CardWhite        = Color(0xFFFFFFFF)
+val CardMintBg       = Color(0xFFE8F5E9)
+val TextDark         = Color(0xFF1A2E1A)
+val TextMid          = Color(0xFF4A5A4A)
+val TextLight        = Color(0xFF9E9E9E)
+val ErrorRed         = Color(0xFFD32F2F)
+val WarningAmber     = Color(0xFFFFC107)
+val SuccessGreen     = Color(0xFF43A047)
+val OrangeWarning    = Color(0xFFF57C00)
+val BlueProceso      = Color(0xFF1976D2)
+val GreenResuelto    = Color(0xFF388E3C)
+val BlueAccent       = Color(0xFF1565C0)
+val PurpleAccent     = Color(0xFF7B1FA2)
+val GoogleBlue       = Color(0xFF4285F4)
+val CardTransparent  = Color(0x33FFFFFF)
+val DarkNavy         = Color(0xFF0D1B2A)

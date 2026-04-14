@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1010157271074",
+    "project_id": "sarc-fa39e",
+    "storage_bucket": "sarc-fa39e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1010157271074:android:fd42c1bc33f42a63bcf27b",
+        "android_client_info": {
+          "package_name": "com.williamsel.sarc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIc19XSuDtTEDmYIIuHHxyiXz9GX4-f7Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
