@@ -17,12 +17,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.williamsel.sarc.features.ciudadano.misreportesciu.domain.entities.ReporteCiudadano
 import com.williamsel.sarc.features.ciudadano.misreportesciu.presentacion.viewmodels.MisReportesViewModel
 import com.williamsel.sarc.ui.theme.BlueProceso
@@ -221,30 +226,50 @@ private fun ReporteCard(
         Column(modifier = Modifier.padding(14.dp)) {
 
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.Top
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text       = reporte.titulo,
-                    fontSize   = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = TextDark,
-                    modifier   = Modifier.weight(1f).padding(end = 8.dp)
-                )
-                EstadoBadge(estado = reporte.estado, idEstado = reporte.idEstado)
+                if (!reporte.imagen.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(reporte.imagen)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Imagen del reporte",
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = reporte.titulo,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextDark,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
+                        EstadoBadge(estado = reporte.estado, idEstado = reporte.idEstado)
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = reporte.descripcion,
+                        fontSize = 12.sp,
+                        color = TextMid,
+                        maxLines = 1
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text     = reporte.descripcion,
-                fontSize = 12.sp,
-                color    = TextMid,
-                maxLines = 2
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = Color(0xFFF0F0F0))
             Spacer(modifier = Modifier.height(8.dp))
 

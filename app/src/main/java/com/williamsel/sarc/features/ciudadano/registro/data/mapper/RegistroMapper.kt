@@ -1,13 +1,16 @@
-package com.williamsel.sarc.features.publico.registro.data.mapper
+package com.williamsel.sarc.features.ciudadano.registro.data.mapper
 
-import com.williamsel.sarc.features.publico.registro.data.models.RegistroDto
-import com.williamsel.sarc.features.publico.registro.domain.entities.UsuarioRegistrado
+import com.williamsel.sarc.features.ciudadano.registro.data.models.RegistroDto
+import com.williamsel.sarc.features.ciudadano.registro.domain.entities.UsuarioRegistrado
 
 fun RegistroDto.toDomain(): UsuarioRegistrado = UsuarioRegistrado(
-    id       = id,
-    nombre   = nombre,
-    correo   = correo,
-    token    = token,
-    rol      = rol,
+    id = id,
+    nombre = nombre,
+    primerApellido = primerApellido,
+    segundoApellido = segundoApellido,
+    correo = email,
+    edad = edad,
+    token = "",
+    rol = nombreRol,
     googleId = googleId
 )

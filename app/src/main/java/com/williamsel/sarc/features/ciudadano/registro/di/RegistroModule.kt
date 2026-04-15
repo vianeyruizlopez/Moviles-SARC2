@@ -1,8 +1,8 @@
-package com.williamsel.sarc.features.publico.registro.di
+package com.williamsel.sarc.features.ciudadano.registro.di
 
-import com.williamsel.sarc.features.publico.registro.data.datasource.api.RegistroApi
-import com.williamsel.sarc.features.publico.registro.data.repositories.RegistroRepositoryImpl
-import com.williamsel.sarc.features.publico.registro.domain.repositories.RegistroRepository
+import com.williamsel.sarc.features.ciudadano.registro.data.datasource.api.RegistroApi
+import com.williamsel.sarc.features.ciudadano.registro.data.repositories.RegistroRepositoryImpl
+import com.williamsel.sarc.features.ciudadano.registro.domain.repositories.RegistroRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

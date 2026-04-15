@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.publico.registro.presentacion.screens
+package com.williamsel.sarc.features.ciudadano.registro.presentacion.screens
 
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.williamsel.sarc.features.publico.registro.presentacion.viewmodels.RegistroViewModel
+import com.williamsel.sarc.features.ciudadano.registro.presentacion.viewmodels.RegistroViewModel
 
 @Composable
 fun RegistroScreen(
@@ -193,8 +193,8 @@ fun RegistroScreen(
                 CampoTexto(
                     value = state.nombre,
                     onValueChange = viewModel::onNombreChange,
-                    label = "Nombre completo",
-                    placeholder = "Juan Pérez",
+                    label = "Nombre",
+                    placeholder = "Juan",
                     leadingIcon = {
                         Icon(
                             Icons.Default.Person,
@@ -204,6 +204,64 @@ fun RegistroScreen(
                     },
                     error = state.errorNombre,
                     keyboardType = KeyboardType.Text
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        CampoTexto(
+                            value = state.primerApellido,
+                            onValueChange = viewModel::onPrimerApellidoChange,
+                            label = "Primer Apellido",
+                            placeholder = "Pérez",
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Badge,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            error = state.errorPrimerApellido,
+                            keyboardType = KeyboardType.Text
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(modifier = Modifier.weight(1f)) {
+                        CampoTexto(
+                            value = state.segundoApellido,
+                            onValueChange = viewModel::onSegundoApellidoChange,
+                            label = "Segundo Apellido",
+                            placeholder = "López",
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Badge,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            error = null,
+                            keyboardType = KeyboardType.Text
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                CampoTexto(
+                    value = state.edad,
+                    onValueChange = viewModel::onEdadChange,
+                    label = "Edad",
+                    placeholder = "Debes ser mayor de 18",
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Cake,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    error = state.errorEdad,
+                    keyboardType = KeyboardType.Number
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))

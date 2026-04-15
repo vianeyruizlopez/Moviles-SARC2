@@ -1,26 +1,28 @@
-package com.williamsel.sarc.features.publico.registro.data.models
-
-import com.google.gson.annotations.SerializedName
+package com.williamsel.sarc.features.ciudadano.registro.data.models
 
 data class RegistroRequestDto(
     val nombre: String,
-    @SerializedName("email") val correo: String,
+    val primerApellido: String,
+    val segundoApellido: String,
+    val email: String,
     val contrasena: String,
-    @SerializedName("primerApellido") val primerApellido: String = "",
-    @SerializedName("segundoApellido") val segundoApellido: String = "",
-    val edad: Int = 18,
+    val edad: Int,
     val idRol: Int = 2
-)
-
-data class RegistroGoogleRequestDto(
-    val idToken: String
 )
 
 data class RegistroDto(
     val id: Int,
     val nombre: String,
-    @SerializedName("email") val correo: String,
-    val token: String = "",
-    @SerializedName("nombreRol") val rol: String = "Ciudadano",
+    val email: String,
+    val primerApellido: String,
+    val segundoApellido: String,
+    val edad: Int,
+    val idRol: Int,
+    val nombreRol: String,
+    val contrasena: String? = null,
     val googleId: String? = null
+)
+
+data class RegistroGoogleRequestDto(
+    val idToken: String
 )

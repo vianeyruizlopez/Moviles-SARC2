@@ -1,13 +1,12 @@
-package com.williamsel.sarc.features.publico.registro.data.repositories
+package com.williamsel.sarc.features.ciudadano.registro.data.repositories
 
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
-import com.williamsel.sarc.features.publico.login.data.datasource.GoogleSignInResult
-import com.williamsel.sarc.features.publico.registro.data.datasource.api.RegistroApi
-import com.williamsel.sarc.features.publico.registro.data.mapper.toDomain
-import com.williamsel.sarc.features.publico.registro.data.models.RegistroGoogleRequestDto
-import com.williamsel.sarc.features.publico.registro.data.models.RegistroRequestDto
-import com.williamsel.sarc.features.publico.registro.domain.entities.UsuarioRegistrado
-import com.williamsel.sarc.features.publico.registro.domain.repositories.RegistroRepository
+import com.williamsel.sarc.features.ciudadano.registro.data.datasource.api.RegistroApi
+import com.williamsel.sarc.features.ciudadano.registro.data.mapper.toDomain
+import com.williamsel.sarc.features.ciudadano.registro.data.models.RegistroGoogleRequestDto
+import com.williamsel.sarc.features.ciudadano.registro.data.models.RegistroRequestDto
+import com.williamsel.sarc.features.ciudadano.registro.domain.entities.UsuarioRegistrado
+import com.williamsel.sarc.features.ciudadano.registro.domain.repositories.RegistroRepository
 import javax.inject.Inject
 
 class RegistroRepositoryImpl @Inject constructor(
@@ -17,15 +16,21 @@ class RegistroRepositoryImpl @Inject constructor(
 
     override suspend fun registrar(
         nombre: String,
+        primerApellido: String,
+        segundoApellido: String,
         correo: String,
-        contrasena: String
+        contrasena: String,
+        edad: Int
     ): UsuarioRegistrado? {
         return try {
             api.registrar(
                 RegistroRequestDto(
                     nombre = nombre,
-                    correo = correo,
-                    contrasena = contrasena
+                    primerApellido = primerApellido,
+                    segundoApellido = segundoApellido,
+                    email = correo,
+                    contrasena = contrasena,
+                    edad = edad
                 )
             ).toDomain()
         } catch (e: Exception) {

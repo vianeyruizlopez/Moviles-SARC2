@@ -9,5 +9,6 @@ data class ReporteCiudadano(
     val incidencia: String,
     val estado: String,
     val idEstado: Int,
-    val puedeEditar: Boolean
+    val puedeEditar: Boolean,
+    val imagen: String? = null
 )

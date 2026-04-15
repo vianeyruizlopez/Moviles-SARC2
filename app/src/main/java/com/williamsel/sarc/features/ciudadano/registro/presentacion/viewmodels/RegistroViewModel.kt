@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.publico.registro.presentacion.viewmodels
+package com.williamsel.sarc.features.ciudadano.registro.presentacion.viewmodels
 
 import android.content.Intent
 import androidx.lifecycle.ViewModel
@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.core.session.SessionManager
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleSignInResult
-import com.williamsel.sarc.features.publico.registro.domain.usecases.RegistrarConGoogleUseCase
-import com.williamsel.sarc.features.publico.registro.domain.usecases.RegistrarUseCase
-import com.williamsel.sarc.features.publico.registro.presentacion.screens.RegistroUiState
+import com.williamsel.sarc.features.ciudadano.registro.domain.usecases.RegistrarConGoogleUseCase
+import com.williamsel.sarc.features.ciudadano.registro.domain.usecases.RegistrarUseCase
+import com.williamsel.sarc.features.ciudadano.registro.presentacion.screens.RegistroUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +31,18 @@ class RegistroViewModel @Inject constructor(
         _uiState.update { it.copy(nombre = value, errorNombre = null, errorMessage = null) }
     }
 
+    fun onPrimerApellidoChange(value: String) {
+        _uiState.update { it.copy(primerApellido = value, errorPrimerApellido = null, errorMessage = null) }
+    }
+
+    fun onSegundoApellidoChange(value: String) {
+        _uiState.update { it.copy(segundoApellido = value, errorMessage = null) }
+    }
+
+    fun onEdadChange(value: String) {
+        _uiState.update { it.copy(edad = value, errorEdad = null, errorMessage = null) }
+    }
+
     fun onCorreoChange(value: String) {
         _uiState.update { it.copy(correo = value, errorCorreo = null, errorMessage = null) }
     }
@@ -43,27 +55,29 @@ class RegistroViewModel @Inject constructor(
         _uiState.update { it.copy(confirmarContrasena = value, errorConfirmar = null, errorMessage = null) }
     }
     fun registrar() {
-        if (!validarCampos()) return
-
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val resultado = registrarUseCase(
-                nombre     = _uiState.value.nombre.trim(),
-                correo     = _uiState.value.correo.trim(),
-                contrasena = _uiState.value.contrasena
+                nombre = _uiState.value.nombre.trim(),
+                primerApellido = _uiState.value.primerApellido.trim(),
+                segundoApellido = _uiState.value.segundoApellido.trim(),
+                correo = _uiState.value.correo.trim(),
+                contrasena = _uiState.value.contrasena,
+                confirmarContrasena = _uiState.value.confirmarContrasena,
+                edad = _uiState.value.edad.trim()
             )
 
-            if (resultado != null) {
-                sessionManager.saveSession(token = resultado.token, rol = resultado.rol)
+            resultado.onSuccess { usuario ->
+                sessionManager.saveSession(token = usuario.token, rol = usuario.rol)
                 _uiState.update {
-                    it.copy(isLoading = false, isSuccess = true, rol = resultado.rol)
+                    it.copy(isLoading = false, isSuccess = true, rol = usuario.rol)
                 }
-            } else {
+            }.onFailure { error ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "No se pudo crear la cuenta. El correo puede estar en uso."
+                        errorMessage = error.message ?: "Error desconocido"
                     )
                 }
             }

@@ -25,7 +25,8 @@ fun ReporteCiudadanoDto.toDomain(): ReporteCiudadano {
         incidencia = nombreIncidencia,
         estado = nombreEstado,
         idEstado = idEstado,
-        puedeEditar = idEstado == 1
+        puedeEditar = idEstado == 1,
+        imagen = imagen
     )
 }
 
@@ -46,5 +47,6 @@ fun ReporteEntity.toDomain(
     incidencia = nombreIncidencia,
     estado = nombreEstado,
     idEstado = idEstado ?: 1,
-    puedeEditar = idEstado == 1
+    puedeEditar = idEstado == 1,
+    imagen = imagen
 )

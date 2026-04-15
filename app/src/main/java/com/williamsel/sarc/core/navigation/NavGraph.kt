@@ -8,7 +8,7 @@ import com.williamsel.sarc.core.session.SessionManager
 
 import com.williamsel.sarc.features.publico.incio.presentacion.screens.InicioScreen
 import com.williamsel.sarc.features.publico.login.presentacion.screens.LoginScreen
-import com.williamsel.sarc.features.publico.registro.presentacion.screens.RegistroScreen
+import com.williamsel.sarc.features.ciudadano.registro.presentacion.screens.RegistroScreen
 import com.williamsel.sarc.features.publico.terminosycondiciones.presentacion.screens.TerminosScreen
 import com.williamsel.sarc.features.publico.politicasdeprivacidad.presentacion.screens.PrivacidadScreen
 
