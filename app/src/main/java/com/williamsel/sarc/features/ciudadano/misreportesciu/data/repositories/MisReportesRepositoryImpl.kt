@@ -36,9 +36,11 @@ class MisReportesRepositoryImpl @Inject constructor(
         idEstado: Int
     ): List<ReporteCiudadano> {
         return try {
-            api.getReportes(idUsuario)
-                .filter { it.idEstado == idEstado }
-                .map { it.toDomain() }
+            val response = api.getReportes(
+                idUsuario = idUsuario,
+                estado    = if (idEstado == 0) null else idEstado
+            )
+            response.map { it.toDomain() }
         } catch (e: Exception) {
             emptyList()
         }

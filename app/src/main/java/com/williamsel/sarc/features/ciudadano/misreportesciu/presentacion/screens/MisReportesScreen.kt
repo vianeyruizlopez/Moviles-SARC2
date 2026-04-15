@@ -67,7 +67,7 @@ fun MisReportesScreen(
         ) {
             OutlinedTextField(
                 value         = state.busqueda,
-                onValueChange = viewModel::onBusquedaChange,
+                onValueChange = { viewModel.onBusquedaChange(idUsuario, it) },
                 placeholder   = { Text("Buscar reportes...", color = TextLight) },
                 leadingIcon   = {
                     Icon(
@@ -92,7 +92,7 @@ fun MisReportesScreen(
 
             FiltroRow(
                 filtroActivo = state.filtroActivo,
-                onFiltroChange = viewModel::onFiltroChange
+                onFiltroChange = { viewModel.onFiltroChange(idUsuario, it) }
             )
 
             Spacer(modifier = Modifier.height(8.dp))

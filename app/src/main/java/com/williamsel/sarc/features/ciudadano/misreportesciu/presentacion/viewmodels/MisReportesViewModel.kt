@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,73 +24,47 @@ class MisReportesViewModel @Inject constructor(
     fun cargarReportes(idUsuario: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            getMisReportesUseCase(idUsuario)
-                .catch { e ->
+            
+            val state = _uiState.value
+            val result = getMisReportesUseCase(
+                idUsuario = idUsuario,
+                idEstado  = state.filtroActivo.idEstado,
+                query     = state.busqueda
+            )
+
+            result.fold(
+                onSuccess = { reportes ->
+                    _uiState.update { 
+                        it.copy(
+                            isLoading         = false,
+                            reportesFiltrados = reportes,
+                            todosLosReportes  = reportes
+                        )
+                    }
+                },
+                onFailure = { e ->
                     _uiState.update {
                         it.copy(
                             isLoading    = false,
-                            errorMessage = "No se pudieron cargar los reportes."
+                            errorMessage = "No se pudieron cargar los reportes: ${e.message}"
                         )
                     }
                 }
-                .collect { reportes ->
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading         = false,
-                            todosLosReportes  = reportes,
-                            reportesFiltrados = aplicarFiltros(
-                                reportes,
-                                state.filtroActivo,
-                                state.busqueda
-                            )
-                        )
-                    }
-                }
-        }
-    }
-
-    fun onFiltroChange(filtro: FiltroEstado) {
-        _uiState.update { state ->
-            state.copy(
-                filtroActivo      = filtro,
-                reportesFiltrados = aplicarFiltros(
-                    state.todosLosReportes,
-                    filtro,
-                    state.busqueda
-                )
             )
         }
     }
 
-    fun onBusquedaChange(query: String) {
-        _uiState.update { state ->
-            state.copy(
-                busqueda          = query,
-                reportesFiltrados = aplicarFiltros(
-                    state.todosLosReportes,
-                    state.filtroActivo,
-                    query
-                )
-            )
-        }
+    fun onFiltroChange(idUsuario: Int, filtro: FiltroEstado) {
+        _uiState.update { it.copy(filtroActivo = filtro) }
+        cargarReportes(idUsuario)
+    }
+
+    fun onBusquedaChange(idUsuario: Int, query: String) {
+        _uiState.update { it.copy(busqueda = query) }
+        cargarReportes(idUsuario)
     }
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
-
-    private fun aplicarFiltros(
-        reportes: List<com.williamsel.sarc.features.ciudadano.misreportesciu.domain.entities.ReporteCiudadano>,
-        filtro: FiltroEstado,
-        busqueda: String
-    ) = reportes
-        .filter { reporte ->
-            filtro.idEstado == null || reporte.idEstado == filtro.idEstado
-        }
-        .filter { reporte ->
-            if (busqueda.isBlank()) true
-            else reporte.titulo.contains(busqueda, ignoreCase = true) ||
-                 reporte.descripcion.contains(busqueda, ignoreCase = true) ||
-                 reporte.ubicacion.contains(busqueda, ignoreCase = true)
-        }
 }
