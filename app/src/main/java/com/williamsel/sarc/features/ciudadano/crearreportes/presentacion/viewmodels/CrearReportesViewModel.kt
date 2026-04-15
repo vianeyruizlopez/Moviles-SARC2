@@ -3,12 +3,13 @@ package com.williamsel.sarc.features.ciudadano.crearreportes.presentacion.viewmo
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamsel.sarc.core.hardware.domain.NetworkManager
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.entities.CategoriaIncidencia
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.entities.NuevoReporte
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.usecases.EnviarReporteUseCase
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.usecases.GetCategoriasUseCase
+import com.williamsel.sarc.features.ciudadano.crearreportes.domain.usecases.ObtenerUbicacionUseCase
 import com.williamsel.sarc.features.ciudadano.crearreportes.presentacion.screens.CrearReportesUiState
-import com.williamsel.sarc.core.hardware.domain.LocationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class CrearReportesViewModel @Inject constructor(
     private val enviarReporteUseCase: EnviarReporteUseCase,
     private val getCategoriasUseCase: GetCategoriasUseCase,
-    private val locationManager: LocationManager
+    private val obtenerUbicacionUseCase: ObtenerUbicacionUseCase,
+    private val networkManager: NetworkManager ///el internet entra como hadware
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CrearReportesUiState())
@@ -37,65 +39,44 @@ class CrearReportesViewModel @Inject constructor(
                 val cats = getCategoriasUseCase()
                 _uiState.update { it.copy(categorias = cats, isCargandoCategorias = false) }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isCargandoCategorias = false,
-                        categorias = listOf(
-                            CategoriaIncidencia(1, "Bache",      "🚧"),
-                            CategoriaIncidencia(2, "Basura",     "🗑️"),
-                            CategoriaIncidencia(3, "Alumbrado",  "💡"),
-                            CategoriaIncidencia(4, "Otro",       "📋")
-                        )
-                    )
-                }
+                _uiState.update { it.copy(isCargandoCategorias = false) }
             }
         }
     }
 
-    fun onTituloChange(value: String) {
-        _uiState.update { it.copy(titulo = value, errorTitulo = null) }
-    }
-
-    fun onDescripcionChange(value: String) {
-        _uiState.update { it.copy(descripcion = value, errorDescripcion = null) }
-    }
-
-    fun onCategoriaSeleccionada(categoria: CategoriaIncidencia) {
-        _uiState.update { it.copy(categoriaSeleccionada = categoria, errorCategoria = null) }
-    }
-
-    fun onImagenSeleccionada(bitmap: Bitmap) {
-        _uiState.update { it.copy(imagen = bitmap) }
-    }
-
-    fun onImagenEliminada() {
-        _uiState.update { it.copy(imagen = null) }
-    }
+    fun onTituloChange(value: String) = _uiState.update { it.copy(titulo = value, errorTitulo = null) }
+    fun onDescripcionChange(value: String) = _uiState.update { it.copy(descripcion = value, errorDescripcion = null) }
+    fun onUbicacionChange(value: String) = _uiState.update { it.copy(ubicacion = value, errorUbicacion = null) }
+    fun onCategoriaSeleccionada(categoria: CategoriaIncidencia) = _uiState.update { it.copy(categoriaSeleccionada = categoria, errorCategoria = null) }
+    fun onImagenSeleccionada(bitmap: Bitmap) = _uiState.update { it.copy(imagen = bitmap) }
+    fun onImagenEliminada() = _uiState.update { it.copy(imagen = null) }
 
     fun obtenerUbicacion() {
         viewModelScope.launch {
-            try {
-                val ubicacionModel = locationManager.obtenerUbicacion()
-                ubicacionModel?.let { ub ->
-                    _uiState.update {
-                        it.copy(
-                            ubicacion      = ub.direccion ?: "${ub.latitud}, ${ub.longitud}",
-                            latitud        = ub.latitud,
-                            longitud       = ub.longitud,
-                            errorUbicacion = null
-                        )
-                    }
-                }
-            } catch (e: Exception) {
+            val ub = obtenerUbicacionUseCase()
+            if (ub != null) {
                 _uiState.update {
-                    it.copy(errorUbicacion = "No se pudo obtener la ubicación")
+                    it.copy(
+                        ubicacion = ub.direccion ?: "${ub.latitud}, ${ub.longitud}",
+                        latitud = ub.latitud,
+                        longitud = ub.longitud,
+                        errorUbicacion = null
+                    )
                 }
+            } else {
+                _uiState.update { it.copy(errorUbicacion = "Error al obtener GPS") }
             }
         }
     }
 
     fun enviarReporte(idUsuario: Int) {
         if (!validar()) return
+
+        // Validación de Hardware de Red
+        if (!networkManager.isNetworkAvailable()) {
+            _uiState.update { it.copy(errorMessage = "Sin conexión a internet") }
+            return
+        }
 
         val state = _uiState.value
         viewModelScope.launch {
@@ -107,61 +88,40 @@ class CrearReportesViewModel @Inject constructor(
                 }.toByteArray()
             }
 
-            val resultado = enviarReporteUseCase(
+            val result = enviarReporteUseCase(
                 idUsuario = idUsuario,
-                reporte   = NuevoReporte(
-                    titulo       = state.titulo.trim(),
-                    descripcion  = state.descripcion.trim(),
-                    ubicacion    = state.ubicacion.trim(),
-                    latitud      = state.latitud,
-                    longitud     = state.longitud,
+                reporte = NuevoReporte(
+                    titulo = state.titulo,
+                    descripcion = state.descripcion,
+                    ubicacion = state.ubicacion,
+                    latitud = state.latitud,
+                    longitud = state.longitud,
                     idIncidencia = state.categoriaSeleccionada!!.id,
-                    imagenBytes  = imagenBytes
+                    imagenBytes = imagenBytes
                 )
             )
 
-            resultado.fold(
+            result.fold(
                 onSuccess = { _uiState.update { it.copy(isLoading = false, isEnviado = true) } },
-                onFailure = { e ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading    = false,
-                            errorMessage = "Error al enviar el reporte. Fue guardado localmente."
-                        )
-                    }
-                }
+                onFailure = { e -> _uiState.update { it.copy(isLoading = false, errorMessage = e.message) } }
             )
         }
     }
 
     private fun validar(): Boolean {
         val state = _uiState.value
-        var valido = true
-
+        var isOk = true
         if (state.titulo.isBlank()) {
-            _uiState.update { it.copy(errorTitulo = "El título es obligatorio") }
-            valido = false
-        }
-        if (state.descripcion.isBlank()) {
-            _uiState.update { it.copy(errorDescripcion = "La descripción es obligatoria") }
-            valido = false
+            _uiState.update { it.copy(errorTitulo = "Obligatorio") }
+            isOk = false
         }
         if (state.categoriaSeleccionada == null) {
-            _uiState.update { it.copy(errorCategoria = "Selecciona una categoría") }
-            valido = false
+            _uiState.update { it.copy(errorCategoria = "Selecciona categoría") }
+            isOk = false
         }
-        if (state.ubicacion.isBlank()) {
-            _uiState.update { it.copy(errorUbicacion = "La ubicación es obligatoria") }
-            valido = false
-        }
-        return valido
+        return isOk
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
-    fun resetEnviado() {
-        _uiState.update { it.copy(isEnviado = false) }
-    }
+    fun resetEnviado() = _uiState.update { it.copy(isEnviado = false) }
+    fun clearError() = _uiState.update { it.copy(errorMessage = null) }
 }

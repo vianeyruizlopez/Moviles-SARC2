@@ -2,8 +2,10 @@ package com.williamsel.sarc.core.hardware
 
 import com.williamsel.sarc.core.hardware.data.AndroidCameraManager
 import com.williamsel.sarc.core.hardware.data.AndroidLocationManager
+import com.williamsel.sarc.core.hardware.data.AndroidNetworkManager
 import com.williamsel.sarc.core.hardware.domain.CameraManager
 import com.williamsel.sarc.core.hardware.domain.LocationManager
+import com.williamsel.sarc.core.hardware.domain.NetworkManager
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +27,10 @@ abstract class HardwareModule {
     abstract fun bindLocationManager(
         androidLocationManager: AndroidLocationManager
     ): LocationManager
+
+    @Binds
+    @Singleton
+    abstract fun bindNetworkManager(
+        androidNetworkManager: AndroidNetworkManager
+    ): NetworkManager
 }

@@ -24,35 +24,19 @@ class CrearReportesRepositoryImpl @Inject constructor(
         return try {
             val textType = "text/plain".toMediaTypeOrNull()
 
-            val tituloPart      = RequestBody.create(textType, reporte.titulo)
-            val descripcionPart = RequestBody.create(textType, reporte.descripcion)
-            val idUsuarioPart   = RequestBody.create(textType, idUsuario.toString())
-            val idIncidenciaPart = RequestBody.create(textType, reporte.idIncidencia.toString())
-            val latitudPart     = RequestBody.create(textType, (reporte.latitud ?: 0.0).toString())
-            val longitudPart    = RequestBody.create(textType, (reporte.longitud ?: 0.0).toString())
-            val idEstadoPart    = RequestBody.create(textType, "1")
-            val ubicacionPart   = RequestBody.create(textType, reporte.ubicacion)
-
-            val imagenPart: MultipartBody.Part? = reporte.imagenBytes?.let { bytes ->
-                MultipartBody.Part.createFormData(
-                    "imagen",
-                    "reporte.jpg",
-                    bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-                )
-            }
-
             val response = api.crearReporte(
-                titulo       = tituloPart,
-                descripcion  = descripcionPart,
-                idUsuario    = idUsuarioPart,
-                idIncidencia = idIncidenciaPart,
-                latitud      = latitudPart,
-                longitud     = longitudPart,
-                idEstado     = idEstadoPart,
-                ubicacion    = ubicacionPart,
-                imagen       = imagenPart
+                titulo       = reporte.titulo.toRequestBody(textType),
+                descripcion  = reporte.descripcion.toRequestBody(textType),
+                idUsuario    = idUsuario.toString().toRequestBody(textType),
+                idIncidencia = reporte.idIncidencia.toString().toRequestBody(textType),
+                latitud      = (reporte.latitud ?: 0.0).toString().toRequestBody(textType),
+                longitud     = (reporte.longitud ?: 0.0).toString().toRequestBody(textType),
+                idEstado     = "1".toRequestBody(textType),
+                ubicacion    = reporte.ubicacion.toRequestBody(textType),
+                imagen       = reporte.imagenBytes?.let {
+                    MultipartBody.Part.createFormData("imagen", "reporte.jpg", it.toRequestBody("image/jpeg".toMediaTypeOrNull()))
+                }
             )
-
             Result.success(response.idReportes)
         } catch (e: Exception) {
             Result.failure(e)
@@ -61,20 +45,18 @@ class CrearReportesRepositoryImpl @Inject constructor(
 
     override suspend fun getCategorias(): List<CategoriaIncidencia> {
         return try {
-            api.getCategorias().map { it.toDomain() }
+            val apiCats = api.getCategorias().map { it.toDomain() }
+            if (apiCats.isNotEmpty()) apiCats else getLocalCategorias()
         } catch (e: Exception) {
-            catIncidenciasDao.getAll().first().map { entity ->
-                CategoriaIncidencia(
-                    id     = entity.idIncidencia,
-                    nombre = entity.nombre,
-                    emoji  = when (entity.nombre.lowercase()) {
-                        "bache"     -> "🚧"
-                        "basura"    -> "🗑️"
-                        "alumbrado" -> "💡"
-                        else        -> "📋"
-                    }
-                )
-            }
+            getLocalCategorias()
         }
+    }
+
+    private suspend fun getLocalCategorias(): List<CategoriaIncidencia> {
+        return listOf(
+            CategoriaIncidencia(1, "Bache", "🚧"),
+            CategoriaIncidencia(2, "Basura", "🗑️"),
+            CategoriaIncidencia(3, "Alumbrado", "💡")
+        )
     }
 }
