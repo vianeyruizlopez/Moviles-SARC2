@@ -3,7 +3,7 @@ package com.williamsel.sarc.features.ciudadano.registro.presentacion.viewmodels
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.williamsel.sarc.core.hardware.domain.model.GestorSonido
+import com.williamsel.sarc.core.hardware.domain.GestorSonido
 import com.williamsel.sarc.core.session.SessionManager
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleSignInResult

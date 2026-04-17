@@ -7,7 +7,7 @@ import com.williamsel.sarc.core.hardware.data.AndroidNetworkManager
 import com.williamsel.sarc.core.hardware.domain.CameraManager
 import com.williamsel.sarc.core.hardware.domain.LocationManager
 import com.williamsel.sarc.core.hardware.domain.NetworkManager
-import com.williamsel.sarc.core.hardware.domain.model.GestorSonido
+import com.williamsel.sarc.core.hardware.domain.GestorSonido
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -112,9 +112,10 @@ fun CrearReporteScreen(
             )
 
             FotografiaSection(
-                imagen              = state.imagen,
+                imagen               = state.imagen,
+                onSolicitarCamara    = { viewModel.solicitarAperturaCamara(it) },
                 onImagenSeleccionada = viewModel::onImagenSeleccionada,
-                onImagenEliminada   = viewModel::onImagenEliminada
+                onImagenEliminada    = viewModel::onImagenEliminada
             )
 
             UbicacionSection(
@@ -296,6 +297,7 @@ private fun CampoTexto(
 @Composable
 private fun FotografiaSection(
     imagen: Bitmap?,
+    onSolicitarCamara: (() -> Unit) -> Unit,
     onImagenSeleccionada: (Bitmap) -> Unit,
     onImagenEliminada: () -> Unit
 ) {
@@ -328,7 +330,7 @@ private fun FotografiaSection(
                 )
             }
             Button(
-                onClick  = { cameraLauncher.launch() },
+                onClick  = { onSolicitarCamara { cameraLauncher.launch() } },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape    = RoundedCornerShape(12.dp),
                 colors   = ButtonDefaults.buttonColors(containerColor = WarningAmber)
@@ -354,7 +356,7 @@ private fun FotografiaSection(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5))
                     .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                    .clickable { cameraLauncher.launch() },
+                    .clickable { onSolicitarCamara { cameraLauncher.launch() } },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

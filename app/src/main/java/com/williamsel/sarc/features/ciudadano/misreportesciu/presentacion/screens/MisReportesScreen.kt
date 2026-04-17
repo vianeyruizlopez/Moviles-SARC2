@@ -1,6 +1,7 @@
 package com.williamsel.sarc.features.ciudadano.misreportesciu.presentacion.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,6 +48,7 @@ fun MisReportesScreen(
     idUsuario: Int = 1,
     onBack: () -> Unit = {},
     onEditarReporte: (Int) -> Unit = {},
+    onVerDetalle: (Int) -> Unit,
     viewModel: MisReportesViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -129,7 +131,8 @@ fun MisReportesScreen(
                     ) { reporte ->
                         ReporteCard(
                             reporte          = reporte,
-                            onEditarReporte  = onEditarReporte
+                            onEditarReporte  = onEditarReporte,
+                            onVerDetalle     = onVerDetalle
                         )
                     }
                 }
@@ -215,13 +218,16 @@ private fun FiltroRow(
 @Composable
 private fun ReporteCard(
     reporte: ReporteCiudadano,
-    onEditarReporte: (Int) -> Unit
+    onEditarReporte: (Int) -> Unit,
+    onVerDetalle: (Int) -> Unit
 ) {
     Card(
         shape     = RoundedCornerShape(16.dp),
         colors    = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier  = Modifier.fillMaxWidth()
+        modifier  = Modifier
+            .fillMaxWidth()
+            .clickable { reporte.idReporte?.let { onVerDetalle(it) } }
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
 

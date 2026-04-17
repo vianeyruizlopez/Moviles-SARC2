@@ -5,7 +5,7 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.VibrationEffect
 import android.os.Vibrator
-import com.williamsel.sarc.core.hardware.domain.model.GestorSonido
+import com.williamsel.sarc.core.hardware.domain.GestorSonido
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 

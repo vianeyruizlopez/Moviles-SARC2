@@ -8,7 +8,12 @@ fun DetallereporteciuDto.toDomain(): Detallereporteciu = Detallereporteciu(
     titulo      = titulo,
     descripcion = descripcion,
     categoria   = categoria,
-    iconoUrl    = iconoUrl,
+    iconoUrl    = when(categoria.lowercase()) {
+        "bache" -> "🚧"
+        "basura" -> "🗑️"
+        "luminaria" -> "💡"
+        else -> null
+    },
     imagenUrl   = imagenUrl,
     estado      = estado,
     direccion   = direccion,

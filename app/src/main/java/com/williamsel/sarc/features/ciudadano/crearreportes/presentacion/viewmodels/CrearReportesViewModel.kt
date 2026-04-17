@@ -24,7 +24,8 @@ class CrearReportesViewModel @Inject constructor(
     private val enviarReporteUseCase: EnviarReporteUseCase,
     private val getCategoriasUseCase: GetCategoriasUseCase,
     private val obtenerUbicacionUseCase: ObtenerUbicacionUseCase,
-    private val networkManager: NetworkManager
+    private val networkManager: NetworkManager,
+    private val cameraManager: com.williamsel.sarc.core.hardware.domain.CameraManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CrearReportesUiState())
@@ -48,8 +49,16 @@ class CrearReportesViewModel @Inject constructor(
     fun onDescripcionChange(value: String) = _uiState.update { it.copy(descripcion = value, errorDescripcion = null) }
     fun onUbicacionChange(value: String) = _uiState.update { it.copy(ubicacion = value, errorUbicacion = null) }
     fun onCategoriaSeleccionada(categoria: CategoriaIncidencia) = _uiState.update { it.copy(categoriaSeleccionada = categoria, errorCategoria = null) }
-    fun onImagenSeleccionada(bitmap: Bitmap) = _uiState.update { it.copy(imagen = bitmap) }
+    fun onImagenSeleccionada(bitmap: Bitmap) = _uiState.update { it.copy(imagen = bitmap, errorMessage = null) }
     fun onImagenEliminada() = _uiState.update { it.copy(imagen = null) }
+
+    fun solicitarAperturaCamara(onLaunchCamera: () -> Unit) {
+        if (cameraManager.tienePermisoCamera()) {
+            onLaunchCamera()
+        } else {
+            _uiState.update { it.copy(errorMessage = "Permiso de cámara denegado") }
+        }
+    }
 
     fun obtenerUbicacion() {
         viewModelScope.launch {

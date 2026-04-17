@@ -128,13 +128,18 @@ private fun ContentSuccess(reporte: Detallereporteciu, onBack: () -> Unit) {
                             modifier          = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            AsyncImage(
-                                model              = reporte.iconoUrl,
-                                contentDescription = reporte.categoria,
-                                modifier           = Modifier
+                            Box(
+                                modifier = Modifier
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                            )
+                                    .background(Color(0xFFF0FDF4)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = reporte.iconoUrl ?: "❓",
+                                    fontSize = 24.sp
+                                )
+                            }
                             Spacer(Modifier.width(12.dp))
                             Column {
                                 Text(
