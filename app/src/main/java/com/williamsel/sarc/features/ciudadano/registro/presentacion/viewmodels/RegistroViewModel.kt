@@ -3,6 +3,7 @@ package com.williamsel.sarc.features.ciudadano.registro.presentacion.viewmodels
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamsel.sarc.core.hardware.domain.model.GestorSonido
 import com.williamsel.sarc.core.session.SessionManager
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleSignInResult
@@ -22,7 +23,8 @@ class RegistroViewModel @Inject constructor(
     private val registrarUseCase: RegistrarUseCase,
     private val registrarConGoogleUseCase: RegistrarConGoogleUseCase,
     private val googleAuthUiClient: GoogleAuthUiClient,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val gestorSonido: GestorSonido,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegistroUiState())
@@ -70,6 +72,7 @@ class RegistroViewModel @Inject constructor(
 
             resultado.onSuccess { usuario ->
                 _uiState.update {
+                    gestorSonido.sonarNavegacion()
                     it.copy(isLoading = false, isSuccess = true, rol = usuario.rol)
                 }
             }.onFailure { error ->

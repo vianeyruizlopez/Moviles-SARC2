@@ -1,11 +1,13 @@
 package com.williamsel.sarc.core.di
 
 import com.williamsel.sarc.core.hardware.data.AndroidCameraManager
+import com.williamsel.sarc.core.hardware.data.AndroidGestorSonido
 import com.williamsel.sarc.core.hardware.data.AndroidLocationManager
 import com.williamsel.sarc.core.hardware.data.AndroidNetworkManager
 import com.williamsel.sarc.core.hardware.domain.CameraManager
 import com.williamsel.sarc.core.hardware.domain.LocationManager
 import com.williamsel.sarc.core.hardware.domain.NetworkManager
+import com.williamsel.sarc.core.hardware.domain.model.GestorSonido
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -33,4 +35,11 @@ abstract class HardwareModule {
     abstract fun bindNetworkManager(
         androidNetworkManager: AndroidNetworkManager
     ): NetworkManager
+
+    @Binds
+    @Singleton
+    abstract fun bindGestorSonido(
+        androidGestorSonido: AndroidGestorSonido
+    ): GestorSonido
+
 }
