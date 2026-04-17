@@ -69,7 +69,6 @@ class RegistroViewModel @Inject constructor(
             )
 
             resultado.onSuccess { usuario ->
-                sessionManager.saveSession(token = usuario.token, rol = usuario.rol)
                 _uiState.update {
                     it.copy(isLoading = false, isSuccess = true, rol = usuario.rol)
                 }
@@ -112,7 +111,6 @@ class RegistroViewModel @Inject constructor(
                 is GoogleSignInResult.Success -> {
                     val resultado = registrarConGoogleUseCase(result.idToken)
                     if (resultado != null) {
-                        sessionManager.saveSession(token = resultado.token, rol = resultado.rol)
                         _uiState.update {
                             it.copy(
                                 isGoogleLoading = false,

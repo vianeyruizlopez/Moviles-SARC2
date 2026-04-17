@@ -1,5 +1,6 @@
 package com.williamsel.sarc.features.ciudadano.registro.data.repositories
 
+import android.util.Log
 import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
 import com.williamsel.sarc.features.ciudadano.registro.data.datasource.api.RegistroApi
 import com.williamsel.sarc.features.ciudadano.registro.data.mapper.toDomain
@@ -34,6 +35,8 @@ class RegistroRepositoryImpl @Inject constructor(
                 )
             ).toDomain()
         } catch (e: Exception) {
+            Log.e("REGISTRO_ERROR", "Error al registrar: ${e.message}")
+            e.printStackTrace()
             null
         }
     }
@@ -46,3 +49,16 @@ class RegistroRepositoryImpl @Inject constructor(
         }
     }
 }
+/*
+POST http://localhost:8080/auth/register
+Envía: Datos del ciudadano (nombre, email, teléfono).
+{
+  "nombre": "Admin Maestro",
+  "primerApellido": "Lopez",
+  "segundoApellido": "García",
+  "email": "master@tuapp.com",
+  "contrasena": "admin123",
+  "edad": 25,
+  "idRol": 2
+}
+ */
