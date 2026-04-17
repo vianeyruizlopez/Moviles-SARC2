@@ -17,3 +17,16 @@ interface RegistroApi {
         @Body body: RegistroGoogleRequestDto
     ): RegistroDto
 }
+/*
+POST http://localhost:8080/auth/register
+Envía: Datos del ciudadano (nombre, email, teléfono).
+{
+  "nombre": "Admin Maestro",
+  "primerApellido": "Lopez",
+  "segundoApellido": "García",
+  "email": "master@tuapp.com",
+  "contrasena": "admin123",
+  "edad": 25,
+  "idRol": 2
+}
+ */

@@ -10,7 +10,6 @@ fun RegistroDto.toDomain(): UsuarioRegistrado = UsuarioRegistrado(
     segundoApellido = segundoApellido,
     correo = email,
     edad = edad,
-    token = "",
     rol = nombreRol,
     googleId = googleId
 )

@@ -24,7 +24,7 @@ class CrearReportesViewModel @Inject constructor(
     private val enviarReporteUseCase: EnviarReporteUseCase,
     private val getCategoriasUseCase: GetCategoriasUseCase,
     private val obtenerUbicacionUseCase: ObtenerUbicacionUseCase,
-    private val networkManager: NetworkManager ///el internet entra como hadware
+    private val networkManager: NetworkManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CrearReportesUiState())
@@ -72,7 +72,6 @@ class CrearReportesViewModel @Inject constructor(
     fun enviarReporte(idUsuario: Int) {
         if (!validar()) return
 
-        // Validación de Hardware de Red
         if (!networkManager.isNetworkAvailable()) {
             _uiState.update { it.copy(errorMessage = "Sin conexión a internet") }
             return

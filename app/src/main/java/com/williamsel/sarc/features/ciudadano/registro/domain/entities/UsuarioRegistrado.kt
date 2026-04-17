@@ -7,7 +7,6 @@ data class UsuarioRegistrado(
     val segundoApellido: String,
     val correo: String,
     val edad: Int,
-    val token: String,
     val rol: String,
     val googleId: String? = null
 )
