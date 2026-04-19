@@ -1,7 +1,7 @@
 package com.williamsel.sarc.features.administrador.paneldeadmin.di
 
 import com.williamsel.sarc.features.administrador.paneldeadmin.data.datasource.api.PanelDeAdminApi
-import com.williamsel.sarc.features.administrador.paneldeadmin.data.repositories.PanelDeAdminRepositoryImpl
+import com.williamsel.sarc.features.administrador.paneldeadmin.data.repositories.PanelDeAdminImpl
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.repositories.PanelDeAdminRepository
 import dagger.Module
 import dagger.Provides
@@ -25,6 +25,6 @@ object PanelDeAdminModule {
     fun providePanelDeAdminRepository(
         api: PanelDeAdminApi
     ): PanelDeAdminRepository {
-        return PanelDeAdminRepositoryImpl(api)
+        return PanelDeAdminImpl(api)
     }
 }

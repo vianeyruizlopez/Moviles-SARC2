@@ -28,6 +28,7 @@ sealed class Routes {
         @Serializable data object Mapa
         @Serializable data object Reportes
         @Serializable data object EstadoRepo
+        @Serializable data class DetalleReporteAdmin(val id: Int)
     }
 
     @Serializable

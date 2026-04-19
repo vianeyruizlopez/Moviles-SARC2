@@ -52,6 +52,7 @@ fun PanelDeAdminScreen(
     viewModel: PanelDeAdminViewModel = hiltViewModel()
 ) {
     val uiState           by viewModel.uiState.collectAsState()
+    val resumen           by viewModel.resumen.collectAsState()
     val vistaActiva       by viewModel.vistaActiva.collectAsState()
     val categoriaSeleccionada by viewModel.categoriaSeleccionada.collectAsState()
     val estadoSeleccionado    by viewModel.estadoSeleccionado.collectAsState()
@@ -139,14 +140,13 @@ fun PanelDeAdminScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .verticalScroll(rememberScrollState())
-                            .weight(0f, fill = false)
                     ) {
-                        // Tarjetas de estadísticas
+                        // Tarjetas de estadísticas usando el nuevo objeto 'resumen'
                         EstadisticasGrid(
-                            total = viewModel.totalReportes,
-                            pendientes = viewModel.pendientes,
-                            enProceso = viewModel.enProceso,
-                            resueltos = viewModel.resueltos
+                            total = resumen.total,
+                            pendientes = resumen.pendientes,
+                            enProceso = resumen.enProceso,
+                            resueltos = resumen.resueltos
                         )
 
                         // Toggle Vista de Lista / Vista de Mapa
@@ -168,7 +168,7 @@ fun PanelDeAdminScreen(
 
                         // Contador
                         Text(
-                            text = "Mostrando ${filteredReportes.size} de ${viewModel.totalReportes} reportes",
+                            text = "Mostrando ${filteredReportes.size} de ${resumen.total} reportes",
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             fontSize = 12.sp,
                             color = TextLight

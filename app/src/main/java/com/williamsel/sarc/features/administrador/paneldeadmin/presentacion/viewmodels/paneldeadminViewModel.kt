@@ -2,14 +2,16 @@ package com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.vie
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.ResumenReportes
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.entities.PanelReporte
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.usecases.GetPanelDeAdminUseCase
 import com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.screens.PanelDeAdminUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,97 +23,96 @@ class PanelDeAdminViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<PanelDeAdminUIState>(PanelDeAdminUIState.Loading)
     val uiState: StateFlow<PanelDeAdminUIState> = _uiState.asStateFlow()
 
-    // Todos los reportes sin filtrar (para estadísticas)
-    private val _allReportes = MutableStateFlow<List<PanelReporte>>(emptyList())
+    private val _resumen = MutableStateFlow(ResumenReportes(0, 0, 0, 0))
+    val resumen: StateFlow<ResumenReportes> = _resumen.asStateFlow()
+
+    private val _filteredReportes = MutableStateFlow<List<PanelReporte>>(emptyList())
+    val filteredReportes: StateFlow<List<PanelReporte>> = _filteredReportes.asStateFlow()
 
     // Filtros
-    private val _categoriaSeleccionada = MutableStateFlow<String>("Todos")
+    private val _categoriaSeleccionada = MutableStateFlow("Todos")
     val categoriaSeleccionada: StateFlow<String> = _categoriaSeleccionada.asStateFlow()
 
-    private val _estadoSeleccionado = MutableStateFlow<String>("Todos")
+    private val _estadoSeleccionado = MutableStateFlow("Todos")
     val estadoSeleccionado: StateFlow<String> = _estadoSeleccionado.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // Reportes filtrados
-    private val _filteredReportes = MutableStateFlow<List<PanelReporte>>(emptyList())
-    val filteredReportes: StateFlow<List<PanelReporte>> = _filteredReportes.asStateFlow()
-
-    // Vista activa (lista o mapa)
     private val _vistaActiva = MutableStateFlow(VistaPanel.LISTA)
     val vistaActiva: StateFlow<VistaPanel> = _vistaActiva.asStateFlow()
 
-    // Estadísticas
-    val totalReportes: Int get() = _allReportes.value.size
-    val pendientes: Int get() = _allReportes.value.count { it.idEstado == 1 }
-    val enProceso: Int get() = _allReportes.value.count { it.idEstado == 2 }
-    val resueltos: Int get() = _allReportes.value.count { it.idEstado == 3 }
+    // Lista de categorías estáticas por ahora o extraídas de los reportes iniciales
+    val categorias = listOf("Todos", "Basura", "Alumbrado", "Baches", "Agua", "Seguridad")
 
-    // Lista de categorías disponibles
-    val categorias: List<String>
-        get() = listOf("Todos") + _allReportes.value
-            .map { it.nombreIncidencia }
-            .distinct()
-            .sorted()
+    private var searchJob: Job? = null
 
     init {
-        viewModelScope.launch {
-            combine(
-                _allReportes,
-                _categoriaSeleccionada,
-                _estadoSeleccionado,
-                _searchQuery
-            ) { reportes, categoria, estado, query ->
-                var filtered = reportes
-
-                if (categoria != "Todos") {
-                    filtered = filtered.filter { it.nombreIncidencia == categoria }
-                }
-
-                if (estado != "Todos") {
-                    filtered = filtered.filter { it.nombreEstado == estado }
-                }
-
-                if (query.isNotBlank()) {
-                    filtered = filtered.filter { reporte ->
-                        reporte.titulo.contains(query, ignoreCase = true) ||
-                        reporte.descripcion.contains(query, ignoreCase = true) ||
-                        reporte.ubicacion.orEmpty().contains(query, ignoreCase = true)
-                    }
-                }
-
-                filtered
-            }.collect { _filteredReportes.value = it }
-        }
+        cargarEstadisticas()
         cargarReportes()
+    }
+
+    fun cargarEstadisticas() {
+        viewModelScope.launch {
+            useCase.getResumenReportes().onSuccess {
+                _resumen.value = it
+            }
+        }
     }
 
     fun cargarReportes() {
         viewModelScope.launch {
             _uiState.value = PanelDeAdminUIState.Loading
-            try {
-                val reportes = useCase.getReportes()
-                _allReportes.value = reportes
-                _uiState.value = PanelDeAdminUIState.Success(reportes)
-            } catch (e: Exception) {
-                _uiState.value = PanelDeAdminUIState.Error(
-                    e.localizedMessage ?: "Error al cargar reportes"
-                )
+            
+            val idEstado = when(_estadoSeleccionado.value) {
+                "Pendientes" -> 1
+                "En Proceso" -> 2
+                "Resueltos" -> 3
+                else -> null
+            }
+            
+            // Mapeo básico de incidencias (esto debería venir de un endpoint de incidencias)
+            val idIncidencia = when(_categoriaSeleccionada.value) {
+                "Basura" -> 1
+                "Alumbrado" -> 2
+                "Baches" -> 3
+                else -> null
+            }
+
+            useCase.getReportes(idIncidencia, idEstado).onSuccess {
+                _filteredReportes.value = it
+                _uiState.value = PanelDeAdminUIState.Success(it)
+            }.onFailure {
+                _uiState.value = PanelDeAdminUIState.Error(it.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    fun actualizarBusqueda(query: String) {
+        _searchQuery.value = query
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(500) // Debounce
+            if (query.length > 2) {
+                _uiState.value = PanelDeAdminUIState.Loading
+                useCase.buscarReportes(query).onSuccess {
+                    _filteredReportes.value = it
+                    _uiState.value = PanelDeAdminUIState.Success(it)
+                }
+            } else if (query.isEmpty()) {
+                cargarReportes()
             }
         }
     }
 
     fun cambiarCategoria(categoria: String) {
         _categoriaSeleccionada.value = categoria
+        cargarReportes()
     }
 
     fun cambiarEstado(estado: String) {
         _estadoSeleccionado.value = estado
-    }
-
-    fun actualizarBusqueda(query: String) {
-        _searchQuery.value = query
+        cargarReportes()
     }
 
     fun cambiarVista(vista: VistaPanel) {
@@ -120,22 +121,18 @@ class PanelDeAdminViewModel @Inject constructor(
 
     fun actualizarEstadoReporte(idReporte: Int, nuevoEstado: Int) {
         viewModelScope.launch {
-            try {
-                useCase.actualizarEstado(idReporte, nuevoEstado)
-                cargarReportes() // recargar toda la lista
-            } catch (e: Exception) {
-                // El error se maneja en la UI si es necesario
+            useCase.actualizarEstado(idReporte, nuevoEstado).onSuccess {
+                cargarEstadisticas() // Refrescar conteo
+                cargarReportes()     // Refrescar lista
             }
         }
     }
 
     fun eliminarReporte(idReporte: Int) {
         viewModelScope.launch {
-            try {
-                useCase.eliminarReporte(idReporte)
+            useCase.eliminarReporte(idReporte).onSuccess {
+                cargarEstadisticas()
                 cargarReportes()
-            } catch (e: Exception) {
-                // Manejar error
             }
         }
     }

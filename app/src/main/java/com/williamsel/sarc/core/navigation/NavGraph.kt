@@ -1,6 +1,9 @@
 package com.williamsel.sarc.core.navigation
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +26,7 @@ import com.williamsel.sarc.features.administrador.paneladmin.presentacion.screen
 import com.williamsel.sarc.features.administrador.mapaadmin.presentacion.screens.MapaAdminScreen
 import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReportesAdminScreen
 import com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.screens.PanelDeAdminScreen
+import com.williamsel.sarc.features.administrador.detallereporteadmin.presentacion.screens.DetalleReporteAdminScreen
 
 import com.williamsel.sarc.features.superadmin.panelsuperadmin.presentacion.screens.PanelSuperAdminScreen
 import com.williamsel.sarc.features.superadmin.usuariosuperadmin.presentacion.screens.UsuarioSuperAdminScreen
@@ -218,6 +222,32 @@ fun NavGraph(
                 PanelDeAdminScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onVerDetalle   = { id ->
+                        navController.navigate(Routes.Admin.DetalleReporteAdmin(id = id))
+                    }
+                )
+            }
+        }
+
+        composable<Routes.Admin.DetalleReporteAdmin> { backStackEntry ->
+            val route: Routes.Admin.DetalleReporteAdmin = backStackEntry.toRoute()
+            val context = LocalContext.current
+
+            GuardedRoute(
+                requiredRol    = "Administrador",
+                sessionManager = sessionManager,
+                navController  = navController
+            ) {
+                DetalleReporteAdminScreen(
+                    idReporte      = route.id,
+                    onNavigateBack = { navController.popBackStack() },
+                    onComoLlegar   = { lat, lng ->
+                        val gmmIntentUri = Uri.parse("google.navigation:q=$lat,$lng")
+                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                        mapIntent.setPackage("com.google.android.apps.maps")
+                        context.startActivity(mapIntent)
+                    },
+                    onCambiarEstado = { _, _ ->
+                        // Lógica manejada dentro del ViewModel
                     }
                 )
             }
