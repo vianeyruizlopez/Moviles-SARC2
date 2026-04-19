@@ -16,7 +16,6 @@ data class ReporteMapaEntity(
         1    -> BitmapDescriptorFactory.HUE_RED
         2    -> BitmapDescriptorFactory.HUE_YELLOW
         3    -> BitmapDescriptorFactory.HUE_GREEN
-        4    -> BitmapDescriptorFactory.HUE_AZURE
         else -> BitmapDescriptorFactory.HUE_RED
     }
 
@@ -24,15 +23,12 @@ data class ReporteMapaEntity(
         1    -> "Bache"
         2    -> "Basura"
         3    -> "Alumbrado"
-        4    -> "Otro"
         else -> "Incidencia"
     }
-
     val estadoLabel: String get() = when (idEstado) {
         1    -> "Pendiente"
-        2    -> "En proceso"
+        2    -> "En Proceso"
         3    -> "Resuelto"
-        4    -> "Rechazado"
         else -> "Desconocido"
     }
 }

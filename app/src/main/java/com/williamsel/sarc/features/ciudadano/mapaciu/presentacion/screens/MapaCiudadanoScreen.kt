@@ -1,7 +1,5 @@
 package com.williamsel.sarc.features.ciudadano.mapaciu.presentacion.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -19,17 +17,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.williamsel.sarc.features.ciudadano.mapaciu.data.models.FiltroCategoriaDto
 import com.williamsel.sarc.features.ciudadano.mapaciu.data.models.FiltroEstadoDto
-import com.williamsel.sarc.features.ciudadano.mapaciu.domain.entities.ReporteMapa
 import com.williamsel.sarc.features.ciudadano.mapaciu.presentacion.viewmodels.MapaCiudadanoViewModel
-import java.text.SimpleDateFormat
-import java.util.*
 
 private val SUCHIAPA = LatLng(16.6167, -93.1000)
 
@@ -47,14 +41,8 @@ fun MapaCiudadanoScreen(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val hasLocationPermission = remember {
-        androidx.core.content.ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED ||
-        androidx.core.content.ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+    LaunchedEffect(Unit) {
+        viewModel.verificarPermisoUbicacion()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -62,10 +50,10 @@ fun MapaCiudadanoScreen(
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
+            properties = MapProperties(isMyLocationEnabled = state.tienePermisoUbicacion),
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
-                myLocationButtonEnabled = false
+                myLocationButtonEnabled = state.tienePermisoUbicacion
             )
         ) {
             state.reportes.forEach { reporte ->
@@ -73,10 +61,8 @@ fun MapaCiudadanoScreen(
                 Marker(
                     state = MarkerState(position = posicion),
                     title = reporte.nombre,
-                    snippet = categoriaLabel(reporte.idIncidencia),
-                    icon = BitmapDescriptorFactory.defaultMarker(
-                        colorPorCategoria(reporte.idIncidencia)
-                    ),
+                    snippet = reporte.categoriaLabel,
+                    icon = BitmapDescriptorFactory.defaultMarker(reporte.marcadorColor),
                     onClick = {
                         viewModel.onMarcadorSeleccionado(reporte)
                         false
@@ -300,7 +286,7 @@ private fun DropdownFiltro(
 
 @Composable
 private fun DetalleReporteSheet(
-    reporte: ReporteMapa,
+    reporte: ReporteMapaUiModel,
     onCerrar: () -> Unit
 ) {
     Column(
@@ -327,7 +313,7 @@ private fun DetalleReporteSheet(
         ) {
             Surface(
                 shape = RoundedCornerShape(4.dp),
-                color = colorComposePorCategoria(reporte.idIncidencia),
+                color = reporte.categoriaColor,
                 modifier = Modifier.size(12.dp)
             ) {}
             Text(
@@ -342,10 +328,10 @@ private fun DetalleReporteSheet(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip(texto = categoriaLabel(reporte.idIncidencia))
+            Chip(texto = reporte.categoriaLabel)
             Chip(
-                texto = estadoLabel(reporte.idEstado),
-                color = colorEstado(reporte.idEstado)
+                texto = reporte.estadoLabel,
+                color = reporte.estadoColor
             )
         }
 
@@ -367,15 +353,13 @@ private fun DetalleReporteSheet(
                 modifier = Modifier.size(16.dp)
             )
             Text(
-                text = "%.6f, %.6f".format(reporte.latitud, reporte.longitud),
+                text = reporte.coordenadasTexto,
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        reporte.fechaReporte?.let { ts ->
-            val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "MX"))
-                .format(Date(ts))
+        reporte.fechaTexto?.let { fecha ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -410,45 +394,4 @@ private fun Chip(texto: String, color: Color = MaterialTheme.colorScheme.seconda
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
-}
-
-
-private fun colorPorCategoria(idIncidencia: Int?): Float = when (idIncidencia) {
-    1 -> BitmapDescriptorFactory.HUE_RED
-    2 -> BitmapDescriptorFactory.HUE_YELLOW
-    3 -> BitmapDescriptorFactory.HUE_ORANGE
-    4 -> BitmapDescriptorFactory.HUE_BLUE
-    else -> BitmapDescriptorFactory.HUE_VIOLET
-}
-
-@Composable
-private fun colorComposePorCategoria(idIncidencia: Int?): Color = when (idIncidencia) {
-    1 -> Color(0xFFE53935)
-    2 -> Color(0xFFFDD835)
-    3 -> Color(0xFFFF8F00)
-    4 -> Color(0xFF1E88E5)
-    else -> MaterialTheme.colorScheme.secondary
-}
-
-private fun categoriaLabel(idIncidencia: Int?): String = when (idIncidencia) {
-    1 -> "Bache"
-    2 -> "Basura"
-    3 -> "Alumbrado"
-    4 -> "Otro"
-    else -> "Sin categoría"
-}
-
-@Composable
-private fun colorEstado(idEstado: Int?): Color = when (idEstado) {
-    1 -> Color(0xFFFFECB3)
-    2 -> Color(0xFFBBDEFB)
-    3 -> Color(0xFFC8E6C9)
-    else -> MaterialTheme.colorScheme.surfaceVariant
-}
-
-private fun estadoLabel(idEstado: Int?): String = when (idEstado) {
-    1 -> "Pendiente"
-    2 -> "En proceso"
-    3 -> "Resuelto"
-    else -> "Sin estado"
 }

@@ -5,11 +5,12 @@ import com.williamsel.sarc.features.ciudadano.mapaciu.data.models.FiltroEstadoDt
 import com.williamsel.sarc.features.ciudadano.mapaciu.domain.entities.ReporteMapa
 
 data class MapaCiudadanoUiState(
-    val reportes:           List<ReporteMapa>  = emptyList(),
+    val reportes:           List<ReporteMapaUiModel> = emptyList(),
     val isLoading:          Boolean            = false,
     val errorMessage:       String?            = null,
     val filtroCategoria:    FiltroCategoriaDto = FiltroCategoriaDto.TODOS,
     val filtroEstado:       FiltroEstadoDto    = FiltroEstadoDto.TODOS,
-    val reporteSeleccionado: ReporteMapa?      = null,
-    val mostrarFiltros:     Boolean            = true
+    val reporteSeleccionado: ReporteMapaUiModel? = null,
+    val mostrarFiltros:     Boolean            = true,
+    val tienePermisoUbicacion: Boolean         = false
 )

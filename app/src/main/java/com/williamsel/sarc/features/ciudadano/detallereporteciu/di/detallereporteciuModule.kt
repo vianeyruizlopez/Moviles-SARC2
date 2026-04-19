@@ -1,6 +1,6 @@
 package com.williamsel.sarc.features.ciudadano.detallereporteciu.di
 
-import com.williamsel.sarc.features.ciudadano.detallereporteciu.data.datasource.api.JsonPlaceHolderdetallereporteciuApi
+import com.williamsel.sarc.features.ciudadano.detallereporteciu.data.datasource.api.DetallereporteciuApi
 import com.williamsel.sarc.features.ciudadano.detallereporteciu.data.repositories.DetallereporteciuImpl
 import com.williamsel.sarc.features.ciudadano.detallereporteciu.domain.repositories.DetallereporteciuRepository
 import dagger.Module
@@ -16,8 +16,8 @@ object DetallereporteciuModule {
 
     @Provides
     @Singleton
-    fun provideDetallereporteciuApi(retrofit: Retrofit): JsonPlaceHolderdetallereporteciuApi =
-        retrofit.create(JsonPlaceHolderdetallereporteciuApi::class.java)
+    fun provideDetallereporteciuApi(retrofit: Retrofit): DetallereporteciuApi =
+        retrofit.create(DetallereporteciuApi::class.java)
 
     @Provides
     @Singleton

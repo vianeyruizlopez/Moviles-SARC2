@@ -4,7 +4,7 @@ import com.williamsel.sarc.features.ciudadano.detallereporteciu.data.models.Deta
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-interface JsonPlaceHolderdetallereporteciuApi {
+interface DetallereporteciuApi {
     @GET("reporte/{id}")
-    suspend fun getDetalleReporte(@Path("id") id: String): DetallereporteciuDto
+    suspend fun getDetalleReporte(@Path("id") id: Int): DetallereporteciuDto
 }

@@ -442,8 +442,7 @@ private fun LabelCampo(texto: String) {
 private val categoriasFake = listOf(
     CategoriaIncidencia(1, "Bache",     "🚧"),
     CategoriaIncidencia(2, "Basura",    "🗑️"),
-    CategoriaIncidencia(3, "Alumbrado", "💡"),
-    CategoriaIncidencia(4, "Otro",      "📋")
+    CategoriaIncidencia(3, "Alumbrado", "💡")
 )
 
 @Preview(showBackground = true, showSystemUi = true, name = "Sin imagen")

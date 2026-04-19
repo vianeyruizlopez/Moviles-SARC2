@@ -6,7 +6,7 @@ import com.williamsel.sarc.features.ciudadano.mapaciu.domain.entities.ReporteMap
 fun ReporteMapaDto.toDomain(): ReporteMapa = ReporteMapa(
     idReporte    = idReporte,
     nombre       = nombre,
-    descripcion  = descripcion,
+    descripcion  = descripcion ?: "",
     latitud      = latitud,
     longitud     = longitud,
     idIncidencia = idIncidencia,
