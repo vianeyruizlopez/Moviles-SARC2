@@ -245,9 +245,6 @@ fun NavGraph(
                         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                         mapIntent.setPackage("com.google.android.apps.maps")
                         context.startActivity(mapIntent)
-                    },
-                    onCambiarEstado = { _, _ ->
-                        // Lógica manejada dentro del ViewModel
                     }
                 )
             }
