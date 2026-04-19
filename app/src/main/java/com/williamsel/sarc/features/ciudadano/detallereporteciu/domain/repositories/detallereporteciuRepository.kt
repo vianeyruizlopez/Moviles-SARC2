@@ -3,5 +3,5 @@ package com.williamsel.sarc.features.ciudadano.detallereporteciu.domain.reposito
 import com.williamsel.sarc.features.ciudadano.detallereporteciu.domain.entities.Detallereporteciu
 
 interface DetallereporteciuRepository {
-    suspend fun getDetalleReporte(id: String): Result<Detallereporteciu>
+    suspend fun getDetalleReporte(id: Int): Result<Detallereporteciu>
 }

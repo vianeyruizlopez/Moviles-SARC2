@@ -1,7 +1,6 @@
 package com.williamsel.sarc.features.ciudadano.detallereporteciu.presentacion.screens
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.williamsel.sarc.features.ciudadano.detallereporteciu.domain.entities.Detallereporteciu
@@ -42,7 +42,7 @@ import com.williamsel.sarc.ui.theme.PurpleAccent
 
 @Composable
 fun DetallereporteciuScreen(
-    reporteId: String,
+    reporteId: Int,
     onBack: () -> Unit,
     viewModel: DetallereporteciuViewModel = hiltViewModel()
 ) {
@@ -235,10 +235,8 @@ private fun ContentSuccess(reporte: Detallereporteciu, onBack: () -> Unit) {
 
         Button(
             onClick = {
-                val uri = Uri.parse(
-                    "geo:${reporte.latitud},${reporte.longitud}" +
-                    "?q=${reporte.latitud},${reporte.longitud}"
-                )
+                val uri = ("geo:${reporte.latitud},${reporte.longitud}" +
+                           "?q=${reporte.latitud},${reporte.longitud}").toUri()
                 val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                     setPackage("com.google.android.apps.maps")
                 }

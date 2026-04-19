@@ -31,7 +31,6 @@ import com.williamsel.sarc.features.ciudadano.mapaciu.presentacion.viewmodels.Ma
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Suchiapa, Chiapas — centro del mapa por defecto
 private val SUCHIAPA = LatLng(16.6167, -93.1000)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +45,6 @@ fun MapaCiudadanoScreen(
         position = CameraPosition.fromLatLngZoom(SUCHIAPA, 12f)
     }
 
-    // Bottom sheet para detalle del reporte seleccionado
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -61,7 +59,6 @@ fun MapaCiudadanoScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ─── Google Map ───────────────────────────────────────────────
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
@@ -82,13 +79,12 @@ fun MapaCiudadanoScreen(
                     ),
                     onClick = {
                         viewModel.onMarcadorSeleccionado(reporte)
-                        false // false = muestra el info window nativo también
+                        false
                     }
                 )
             }
         }
 
-        // ─── TopBar flotante sobre el mapa ────────────────────────────
         Column(modifier = Modifier.fillMaxWidth()) {
             Surface(
                 color = MaterialTheme.colorScheme.primary,
@@ -121,7 +117,6 @@ fun MapaCiudadanoScreen(
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )
                     }
-                    // Botón refrescar
                     IconButton(onClick = viewModel::cargarReportes) {
                         Icon(
                             Icons.Default.Refresh,
@@ -132,7 +127,6 @@ fun MapaCiudadanoScreen(
                 }
             }
 
-            // ─── Panel de filtros ──────────────────────────────────────
             AnimatedVisibility(
                 visible = state.mostrarFiltros,
                 enter = slideInVertically(),
@@ -163,7 +157,6 @@ fun MapaCiudadanoScreen(
                             )
                         }
 
-                        // Filtro categoría
                         Text(
                             text = "Categoría",
                             fontSize = 12.sp,
@@ -179,7 +172,6 @@ fun MapaCiudadanoScreen(
                             }
                         )
 
-                        // Filtro estado
                         Text(
                             text = "Estado",
                             fontSize = 12.sp,
@@ -199,7 +191,6 @@ fun MapaCiudadanoScreen(
             }
         }
 
-        // ─── FAB para mostrar/ocultar filtros ─────────────────────────
         FloatingActionButton(
             onClick = viewModel::toggleFiltros,
             modifier = Modifier
@@ -216,7 +207,6 @@ fun MapaCiudadanoScreen(
             )
         }
 
-        // ─── Loading overlay ──────────────────────────────────────────
         if (state.isLoading) {
             Box(
                 modifier = Modifier
@@ -228,7 +218,6 @@ fun MapaCiudadanoScreen(
             }
         }
 
-        // ─── Contador de reportes visibles ────────────────────────────
         if (state.reportes.isNotEmpty()) {
             Surface(
                 modifier = Modifier
@@ -250,7 +239,6 @@ fun MapaCiudadanoScreen(
         }
     }
 
-    // ─── Bottom Sheet — detalle del reporte seleccionado ─────────────
     if (state.reporteSeleccionado != null) {
         ModalBottomSheet(
             onDismissRequest = viewModel::onCerrarDetalleReporte,
@@ -264,7 +252,6 @@ fun MapaCiudadanoScreen(
     }
 }
 
-// ─── Componentes privados ─────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -323,7 +310,6 @@ private fun DetalleReporteSheet(
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Handle
         Box(
             modifier = Modifier
                 .width(40.dp)
@@ -339,7 +325,6 @@ private fun DetalleReporteSheet(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Punto de color por categoría
             Surface(
                 shape = RoundedCornerShape(4.dp),
                 color = colorComposePorCategoria(reporte.idIncidencia),
@@ -356,7 +341,6 @@ private fun DetalleReporteSheet(
             }
         }
 
-        // Categoría y estado
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Chip(texto = categoriaLabel(reporte.idIncidencia))
             Chip(
@@ -372,7 +356,6 @@ private fun DetalleReporteSheet(
             lineHeight = 20.sp
         )
 
-        // Coordenadas
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -390,7 +373,6 @@ private fun DetalleReporteSheet(
             )
         }
 
-        // Fecha
         reporte.fechaReporte?.let { ts ->
             val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "MX"))
                 .format(Date(ts))
@@ -430,18 +412,15 @@ private fun Chip(texto: String, color: Color = MaterialTheme.colorScheme.seconda
     }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Color del marcador en Google Maps (hue) según categoría */
 private fun colorPorCategoria(idIncidencia: Int?): Float = when (idIncidencia) {
-    1 -> BitmapDescriptorFactory.HUE_RED      // Bache
-    2 -> BitmapDescriptorFactory.HUE_YELLOW   // Basura
-    3 -> BitmapDescriptorFactory.HUE_ORANGE   // Alumbrado
-    4 -> BitmapDescriptorFactory.HUE_BLUE     // Otro
+    1 -> BitmapDescriptorFactory.HUE_RED
+    2 -> BitmapDescriptorFactory.HUE_YELLOW
+    3 -> BitmapDescriptorFactory.HUE_ORANGE
+    4 -> BitmapDescriptorFactory.HUE_BLUE
     else -> BitmapDescriptorFactory.HUE_VIOLET
 }
 
-/** Color Compose para UI según categoría */
 @Composable
 private fun colorComposePorCategoria(idIncidencia: Int?): Color = when (idIncidencia) {
     1 -> Color(0xFFE53935)
@@ -461,9 +440,9 @@ private fun categoriaLabel(idIncidencia: Int?): String = when (idIncidencia) {
 
 @Composable
 private fun colorEstado(idEstado: Int?): Color = when (idEstado) {
-    1 -> Color(0xFFFFECB3) // Pendiente — amarillo
-    2 -> Color(0xFFBBDEFB) // En proceso — azul
-    3 -> Color(0xFFC8E6C9) // Resuelto — verde
+    1 -> Color(0xFFFFECB3)
+    2 -> Color(0xFFBBDEFB)
+    3 -> Color(0xFFC8E6C9)
     else -> MaterialTheme.colorScheme.surfaceVariant
 }
 

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.features.ciudadano.mapaciu.data.models.FiltroCategoriaDto
 import com.williamsel.sarc.features.ciudadano.mapaciu.data.models.FiltroEstadoDto
 import com.williamsel.sarc.features.ciudadano.mapaciu.domain.entities.ReporteMapa
-import com.williamsel.sarc.features.ciudadano.mapaciu.domain.usecases.GetReportesMapaFiltradosUseCase
 import com.williamsel.sarc.features.ciudadano.mapaciu.domain.usecases.GetReportesMapaUseCase
 import com.williamsel.sarc.features.ciudadano.mapaciu.presentacion.screens.MapaCiudadanoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,8 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapaCiudadanoViewModel @Inject constructor(
-    private val getReportesMapaUseCase:          GetReportesMapaUseCase,
-    private val getReportesMapaFiltradosUseCase: GetReportesMapaFiltradosUseCase
+    private val getReportesMapaUseCase: GetReportesMapaUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MapaCiudadanoUiState())
@@ -30,33 +28,34 @@ class MapaCiudadanoViewModel @Inject constructor(
     }
 
     fun cargarReportes() {
+        val state = _uiState.value
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val reportes = getReportesMapaUseCase()
-            _uiState.update { it.copy(isLoading = false, reportes = reportes) }
+            try {
+                val reportes = getReportesMapaUseCase(
+                    idIncidencia = state.filtroCategoria.id,
+                    idEstado     = state.filtroEstado.id
+                )
+                _uiState.update { it.copy(isLoading = false, reportes = reportes) }
+            } catch (e: Exception) {
+                _uiState.update { 
+                    it.copy(
+                        isLoading    = false, 
+                        errorMessage = "Error al conectar con el servidor" 
+                    )
+                }
+            }
         }
     }
 
     fun onFiltroCategoriaChanged(filtro: FiltroCategoriaDto) {
         _uiState.update { it.copy(filtroCategoria = filtro) }
-        aplicarFiltros()
+        cargarReportes()
     }
 
     fun onFiltroEstadoChanged(filtro: FiltroEstadoDto) {
         _uiState.update { it.copy(filtroEstado = filtro) }
-        aplicarFiltros()
-    }
-
-    private fun aplicarFiltros() {
-        val state = _uiState.value
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val reportes = getReportesMapaFiltradosUseCase(
-                idIncidencia = state.filtroCategoria.id,
-                idEstado     = state.filtroEstado.id
-            )
-            _uiState.update { it.copy(isLoading = false, reportes = reportes) }
-        }
+        cargarReportes()
     }
 
     fun onMarcadorSeleccionado(reporte: ReporteMapa) {

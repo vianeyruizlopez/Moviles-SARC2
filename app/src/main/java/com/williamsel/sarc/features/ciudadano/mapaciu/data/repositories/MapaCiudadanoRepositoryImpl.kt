@@ -10,20 +10,9 @@ class MapaCiudadanoRepositoryImpl @Inject constructor(
     private val api: MapaCiudadanoApi
 ) : MapaCiudadanoRepository {
 
-    override suspend fun getReportes(): List<ReporteMapa> {
+    override suspend fun getReportes(idIncidencia: Int?, idEstado: Int?): List<ReporteMapa> {
         return try {
-            api.getReportes().map { it.toDomain() }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    override suspend fun getReportesFiltrados(
-        idIncidencia: Int?,
-        idEstado:     Int?
-    ): List<ReporteMapa> {
-        return try {
-            api.getReportesFiltrados(idIncidencia, idEstado).map { it.toDomain() }
+            api.getReportes(idIncidencia, idEstado).map { it.toDomain() }
         } catch (e: Exception) {
             emptyList()
         }

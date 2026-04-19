@@ -19,7 +19,7 @@ class DetallereporteciuViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<DetallereporteciuUIState>(DetallereporteciuUIState.Loading)
     val uiState: StateFlow<DetallereporteciuUIState> = _uiState.asStateFlow()
 
-    fun cargar(id: String) {
+    fun cargar(id: Int) {
         viewModelScope.launch {
             _uiState.value = DetallereporteciuUIState.Loading
             getDetalle(id)

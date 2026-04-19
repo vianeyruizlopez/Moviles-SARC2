@@ -45,7 +45,7 @@ import java.util.Date
 import java.util.Locale
 @Composable
 fun MisReportesScreen(
-    idUsuario: Int = 1,
+    idUsuario: Int,
     onBack: () -> Unit = {},
     onEditarReporte: (Int) -> Unit = {},
     onVerDetalle: (Int) -> Unit,

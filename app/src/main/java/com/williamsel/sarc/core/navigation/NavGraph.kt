@@ -161,7 +161,7 @@ fun NavGraph(
                 navController  = navController
             ) {
                 DetallereporteciuScreen(
-                    reporteId = route.id.toString(),
+                    reporteId = route.id,
                     onBack    = { navController.popBackStack() }
                 )
             }

@@ -12,13 +12,6 @@ data class ReporteMapaEntity(
     val idEstado:     Int?,
     val fechaReporte: Long?
 ) {
-    /**
-     * Color del marcador en el mapa según el estado del reporte:
-     * - Pendiente  → rojo
-     * - En proceso → amarillo
-     * - Resuelto   → verde
-     * - Rechazado  → gris
-     */
     val markerColor: Float get() = when (idEstado) {
         1    -> BitmapDescriptorFactory.HUE_RED
         2    -> BitmapDescriptorFactory.HUE_YELLOW

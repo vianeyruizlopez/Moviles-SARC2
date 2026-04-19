@@ -1,6 +1,5 @@
 package com.williamsel.sarc.features.ciudadano.mapaciu.data.models
 
-/** Categorías de incidencia con color para el marcador */
 enum class FiltroCategoriaDto(val id: Int?, val label: String) {
     TODOS(null, "Todos"),
     BACHE(1, "Bache"),
@@ -9,7 +8,6 @@ enum class FiltroCategoriaDto(val id: Int?, val label: String) {
     OTRO(4, "Otro")
 }
 
-/** Estados del reporte con color para el marcador */
 enum class FiltroEstadoDto(val id: Int?, val label: String) {
     TODOS(null, "Todos"),
     PENDIENTE(1, "Pendiente"),

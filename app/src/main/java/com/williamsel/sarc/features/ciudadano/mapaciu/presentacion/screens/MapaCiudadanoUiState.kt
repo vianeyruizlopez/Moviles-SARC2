@@ -10,6 +10,6 @@ data class MapaCiudadanoUiState(
     val errorMessage:       String?            = null,
     val filtroCategoria:    FiltroCategoriaDto = FiltroCategoriaDto.TODOS,
     val filtroEstado:       FiltroEstadoDto    = FiltroEstadoDto.TODOS,
-    val reporteSeleccionado: ReporteMapa?      = null,  // para el bottom sheet al tocar un marcador
+    val reporteSeleccionado: ReporteMapa?      = null,
     val mostrarFiltros:     Boolean            = true
 )

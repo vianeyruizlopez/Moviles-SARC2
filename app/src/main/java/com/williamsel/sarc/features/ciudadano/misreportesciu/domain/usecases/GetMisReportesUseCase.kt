@@ -7,17 +7,14 @@ import javax.inject.Inject
 class GetMisReportesUseCase @Inject constructor(
     private val repository: MisReportesRepository
 ) {
-    // La lógica de negocio vive aquí: decidir cómo filtrar los reportes
     suspend operator fun invoke(
         idUsuario: Int, 
         idEstado: Int? = null, 
         query: String? = null
     ): Result<List<ReporteCiudadano>> {
         return try {
-            // El repositorio ahora se encarga de la comunicación filtrada
             val reportes = repository.getReportesByUsuarioYEstado(idUsuario, idEstado ?: 0)
             
-            // Si hay una búsqueda, aplicamos el filtro de texto aquí (Lógica de negocio)
             val filtrados = if (!query.isNullOrBlank()) {
                 reportes.filter { 
                     it.titulo.contains(query, ignoreCase = true) || 

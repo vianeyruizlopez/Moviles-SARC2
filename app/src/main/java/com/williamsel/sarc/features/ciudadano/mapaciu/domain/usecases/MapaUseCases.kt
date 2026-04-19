@@ -7,14 +7,8 @@ import javax.inject.Inject
 class GetReportesMapaUseCase @Inject constructor(
     private val repository: MapaCiudadanoRepository
 ) {
-    suspend operator fun invoke(): List<ReporteMapa> = repository.getReportes()
-}
-
-class GetReportesMapaFiltradosUseCase @Inject constructor(
-    private val repository: MapaCiudadanoRepository
-) {
     suspend operator fun invoke(
-        idIncidencia: Int?,
-        idEstado:     Int?
-    ): List<ReporteMapa> = repository.getReportesFiltrados(idIncidencia, idEstado)
+        idIncidencia: Int? = null,
+        idEstado:     Int? = null
+    ): List<ReporteMapa> = repository.getReportes(idIncidencia, idEstado)
 }
