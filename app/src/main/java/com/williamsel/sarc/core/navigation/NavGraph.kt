@@ -99,7 +99,6 @@ fun NavGraph(
                 navController  = navController
             ) {
                 PanelCiudadanoScreen(
-                    idUsuario                = sessionManager.getUserId(),
                     onNavigateToMapa         = { navController.navigate(Routes.Ciudadano.Mapa) },
                     onNavigateToCrearReporte = { navController.navigate(Routes.Ciudadano.CrearReporte) },
                     onNavigateToMisReportes  = { navController.navigate(Routes.Ciudadano.MisReportes) },

@@ -22,44 +22,42 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.williamsel.sarc.features.ciudadano.panelciu.presentacion.viewmodels.PanelCiudadanoViewModel
-import com.williamsel.sarc.ui.theme.BlueAccent
-import com.williamsel.sarc.ui.theme.BlueProceso
-import com.williamsel.sarc.ui.theme.CardMintBg
-import com.williamsel.sarc.ui.theme.CardWhite
-import com.williamsel.sarc.ui.theme.DarkNavy
-import com.williamsel.sarc.ui.theme.GreenResuelto
-import com.williamsel.sarc.ui.theme.OrangeWarning
-import com.williamsel.sarc.ui.theme.PurpleAccent
-import com.williamsel.sarc.ui.theme.SarcGreen
-import com.williamsel.sarc.ui.theme.SarcTheme
-import com.williamsel.sarc.ui.theme.TextDark
-import com.williamsel.sarc.ui.theme.TextMid
-
+import com.williamsel.sarc.ui.theme.*
 
 @Composable
 fun PanelCiudadanoScreen(
-    idUsuario: Int = 1,
-    onNavigateToCrearReporte: () -> Unit = {},
-    onNavigateToMisReportes: () -> Unit = {},
-    onNavigateToMapa: () -> Unit = {},
-    onLogout: () -> Unit = {},
+    onNavigateToCrearReporte: () -> Unit,
+    onNavigateToMisReportes: () -> Unit,
+    onNavigateToMapa: () -> Unit,
+    onLogout: () -> Unit,
     viewModel: PanelCiudadanoViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(idUsuario) {
-        viewModel.cargarPanel(idUsuario)
-    }
+    PanelCiudadanoContent(
+        state = state,
+        onNavigateToCrearReporte = onNavigateToCrearReporte,
+        onNavigateToMisReportes = onNavigateToMisReportes,
+        onNavigateToMapa = onNavigateToMapa,
+        onLogout = {
+            viewModel.logout()
+            onLogout()
+        }
+    )
+}
 
-    state.errorMessage?.let { msg ->
-        LaunchedEffect(msg) { viewModel.clearError() }
-    }
-
+@Composable
+fun PanelCiudadanoContent(
+    state: PanelCiudadanoUiState,
+    onNavigateToCrearReporte: () -> Unit,
+    onNavigateToMisReportes: () -> Unit,
+    onNavigateToMapa: () -> Unit,
+    onLogout: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +65,7 @@ fun PanelCiudadanoScreen(
             .verticalScroll(rememberScrollState())
     ) {
         PanelTopBar(
-            nombre   = state.nombreCompleto.ifBlank { "Usuario" },
+            nombre   = state.nombreCompleto.ifBlank { "Ciudadano" },
             onLogout = onLogout
         )
 
@@ -80,21 +78,15 @@ fun PanelCiudadanoScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (state.isLoading) {
-                Box(
-                    modifier         = Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = CardWhite)
                 }
             } else {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     EstadisticaCard(
                         modifier    = Modifier.weight(1f),
                         label       = "Total\nReportes",
-                        valor       = state.totalReportes.toString(),
+                        valor       = state.total.toString(),
                         icon        = Icons.Default.Description,
                         iconTint    = SarcGreen,
                         iconBgColor = CardMintBg,
@@ -111,10 +103,7 @@ fun PanelCiudadanoScreen(
                     )
                 }
 
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     EstadisticaCard(
                         modifier    = Modifier.weight(1f),
                         label       = "En Proceso",
@@ -139,28 +128,28 @@ fun PanelCiudadanoScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             AccionCard(
-                icon        = Icons.Default.Add,
+                icon = Icons.Default.Add,
                 iconBgColor = CardMintBg,
-                iconTint    = SarcGreen,
-                titulo      = "Reportar Incidencia",
-                subtitulo   = "Crea un nuevo reporte en segundos",
-                onClick     = onNavigateToCrearReporte
+                iconTint = SarcGreen,
+                titulo = "Reportar Incidencia",
+                subtitulo = "Crea un nuevo reporte en segundos",
+                onClick = onNavigateToCrearReporte
             )
             AccionCard(
-                icon        = Icons.Default.Description,
+                icon = Icons.Default.Description,
                 iconBgColor = Color(0xFFEDE7F6),
-                iconTint    = BlueAccent,
-                titulo      = "Mis Reportes",
-                subtitulo   = "Ver historial completo",
-                onClick     = onNavigateToMisReportes
+                iconTint = BlueAccent,
+                titulo = "Mis Reportes",
+                subtitulo = "Ver historial completo",
+                onClick = onNavigateToMisReportes
             )
             AccionCard(
-                icon        = Icons.Default.Map,
+                icon = Icons.Default.Map,
                 iconBgColor = Color(0xFFF3E5F5),
-                iconTint    = PurpleAccent,
-                titulo      = "Mapa Interactivo",
-                subtitulo   = "Visualización geográfica",
-                onClick     = onNavigateToMapa
+                iconTint = PurpleAccent,
+                titulo = "Mapa Interactivo",
+                subtitulo = "Visualización geográfica",
+                onClick = onNavigateToMapa
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -169,61 +158,26 @@ fun PanelCiudadanoScreen(
 }
 
 @Composable
-private fun PanelTopBar(
-    nombre: String,
-    onLogout: () -> Unit
-) {
+private fun PanelTopBar(nombre: String, onLogout: () -> Unit) {
     Row(
-        modifier          = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+        modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier         = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(DarkNavy),
+            modifier = Modifier.size(48.dp).clip(CircleShape).background(DarkNavy),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text       = "S",
-                fontSize   = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color      = SarcGreen
-            )
+            Text(text = "S", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = SarcGreen)
         }
-
         Spacer(modifier = Modifier.width(12.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text       = "SARC",
-                fontSize   = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color      = CardWhite
-            )
-            Text(
-                text     = nombre,
-                fontSize = 13.sp,
-                color    = CardWhite.copy(alpha = 0.85f)
-            )
+            Text(text = "SARC", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = CardWhite)
+            Text(text = nombre, fontSize = 13.sp, color = CardWhite.copy(alpha = 0.85f))
         }
-
         TextButton(onClick = onLogout) {
-            Icon(
-                imageVector        = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = "Salir",
-                tint               = CardWhite,
-                modifier           = Modifier.size(20.dp)
-            )
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, "Salir", tint = CardWhite, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text     = "Salir",
-                color    = CardWhite,
-                fontSize = 14.sp
-            )
+            Text(text = "Salir", color = CardWhite, fontSize = 14.sp)
         }
     }
 }
@@ -239,44 +193,26 @@ private fun EstadisticaCard(
     valorColor: Color
 ) {
     Card(
-        modifier  = modifier.height(90.dp),
-        shape     = RoundedCornerShape(16.dp),
-        colors    = CardDefaults.cardColors(containerColor = CardWhite),
+        modifier = modifier.height(90.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier              = Modifier.fillMaxSize().padding(12.dp),
-            verticalAlignment     = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(
-                    text       = label,
-                    fontSize   = 12.sp,
-                    color      = TextMid,
-                    lineHeight = 16.sp
-                )
+                Text(text = label, fontSize = 12.sp, color = TextMid, lineHeight = 16.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text       = valor,
-                    fontSize   = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = valorColor
-                )
+                Text(text = valor, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = valorColor)
             }
             Box(
-                modifier         = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconBgColor),
+                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(iconBgColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector        = icon,
-                    contentDescription = null,
-                    tint               = iconTint,
-                    modifier           = Modifier.size(22.dp)
-                )
+                Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
             }
         }
     }
@@ -292,83 +228,27 @@ private fun AccionCard(
     onClick: () -> Unit
 ) {
     Card(
-        onClick   = onClick,
-        shape     = RoundedCornerShape(16.dp),
-        colors    = CardDefaults.cardColors(containerColor = CardWhite),
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier  = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier          = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier         = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconBgColor),
+                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(iconBgColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector        = icon,
-                    contentDescription = null,
-                    tint               = iconTint,
-                    modifier           = Modifier.size(26.dp)
-                )
+                Icon(icon, null, tint = iconTint, modifier = Modifier.size(26.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(
-                    text       = titulo,
-                    fontSize   = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = TextDark
-                )
-                Text(
-                    text     = subtitulo,
-                    fontSize = 12.sp,
-                    color    = TextMid
-                )
+                Text(text = titulo, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                Text(text = subtitulo, fontSize = 12.sp, color = TextMid)
             }
-        }
-    }
-}
-
-@Composable
-internal fun PanelCiudadanoContent(
-    state: PanelCiudadanoUiState,
-    onNavigateToCrearReporte: () -> Unit = {},
-    onNavigateToMisReportes: () -> Unit = {},
-    onNavigateToMapa: () -> Unit = {},
-    onLogout: () -> Unit = {}
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SarcGreen)
-            .verticalScroll(rememberScrollState())
-    ) {
-        PanelTopBar(nombre = state.nombreCompleto.ifBlank { "Usuario" }, onLogout = onLogout)
-        Spacer(modifier = Modifier.height(20.dp))
-        Column(
-            modifier            = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                EstadisticaCard(Modifier.weight(1f), "Total\nReportes", state.totalReportes.toString(), Icons.Default.Description, SarcGreen, CardMintBg, TextDark)
-                EstadisticaCard(Modifier.weight(1f), "Pendientes", state.pendientes.toString(), Icons.Default.Warning, OrangeWarning, Color(0xFFFFF3E0), OrangeWarning)
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                EstadisticaCard(Modifier.weight(1f), "En Proceso", state.enProceso.toString(), Icons.Default.Schedule, BlueProceso, Color(0xFFE3F2FD), BlueProceso)
-                EstadisticaCard(Modifier.weight(1f), "Resueltos", state.resueltos.toString(), Icons.Default.CheckCircle, GreenResuelto, Color(0xFFE8F5E9), GreenResuelto)
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            AccionCard(Icons.Default.Add, CardMintBg, SarcGreen, "Reportar Incidencia", "Crea un nuevo reporte en segundos", onNavigateToCrearReporte)
-            AccionCard(Icons.Default.Description, Color(0xFFEDE7F6), BlueAccent, "Mis Reportes", "Ver historial completo", onNavigateToMisReportes)
-            AccionCard(Icons.Default.Map, Color(0xFFF3E5F5), PurpleAccent, "Mapa Interactivo", "Visualización geográfica", onNavigateToMapa)
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
