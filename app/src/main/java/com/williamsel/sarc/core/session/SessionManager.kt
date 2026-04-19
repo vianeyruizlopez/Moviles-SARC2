@@ -13,16 +13,18 @@ class SessionManager @Inject constructor(
 ) {
     private val prefs = context.getSharedPreferences("sarc_session", Context.MODE_PRIVATE)
 
-    fun saveSession(token: String, rol: String) {
+    fun saveSession(token: String, rol: String, idUsuario: Int) {
         prefs.edit()
             .putString("jwt", token)
             .putString("rol", rol)
+            .putInt("id_usuario", idUsuario)
             .apply()
     }
 
     fun getToken(): String? = prefs.getString("jwt", null)
     fun getRol(): String?   = prefs.getString("rol", null)
-    fun isLoggedIn(): Boolean = getToken() != null
+    fun getUserId(): Int    = prefs.getInt("id_usuario", -1)
+    fun isLoggedIn(): Boolean = getToken() != null && getUserId() != -1
 
     fun clearSession() {
         prefs.edit().clear().apply()

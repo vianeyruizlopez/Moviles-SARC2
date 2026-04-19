@@ -41,7 +41,7 @@ class LoginViewModel @Inject constructor(
             val resultado = restaurarSesionUseCase()
 
             if (resultado != null) {
-                guardarSesionYNavegar(resultado.token, resultado.rol)
+                guardarSesionYNavegar(resultado.token, resultado.rol, resultado.id)
             } else {
                 _uiState.update { it.copy(isLoading = false, sessionChecked = true) }
             }
@@ -69,7 +69,7 @@ class LoginViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val resultado = loginUseCase(correo, contrasena)
             if (resultado != null) {
-                guardarSesionYNavegar(resultado.token, resultado.rol)
+                guardarSesionYNavegar(resultado.token, resultado.rol, resultado.id)
             } else {
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = "Correo o contraseña incorrectos")
@@ -106,7 +106,7 @@ class LoginViewModel @Inject constructor(
                 is GoogleSignInResult.Success -> {
                     val loginResult = loginConGoogleUseCase(result.idToken)
                     if (loginResult != null) {
-                        guardarSesionYNavegar(loginResult.token, loginResult.rol)
+                        guardarSesionYNavegar(loginResult.token, loginResult.rol, loginResult.id)
                     } else {
                         _uiState.update {
                             it.copy(
@@ -125,8 +125,8 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun guardarSesionYNavegar(token: String, rol: String) {
-        sessionManager.saveSession(token = token, rol = rol)
+    private fun guardarSesionYNavegar(token: String, rol: String, idUsuario: Int) {
+        sessionManager.saveSession(token = token, rol = rol, idUsuario = idUsuario)
         _uiState.update {
             it.copy(
                 isLoading = false,

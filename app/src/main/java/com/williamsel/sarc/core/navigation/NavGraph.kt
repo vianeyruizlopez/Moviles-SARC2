@@ -99,6 +99,7 @@ fun NavGraph(
                 navController  = navController
             ) {
                 PanelCiudadanoScreen(
+                    idUsuario                = sessionManager.getUserId(),
                     onNavigateToMapa         = { navController.navigate(Routes.Ciudadano.Mapa) },
                     onNavigateToCrearReporte = { navController.navigate(Routes.Ciudadano.CrearReporte) },
                     onNavigateToMisReportes  = { navController.navigate(Routes.Ciudadano.MisReportes) },
@@ -129,6 +130,7 @@ fun NavGraph(
                 navController  = navController
             ) {
                 CrearReporteScreen(
+                    idUsuario       = sessionManager.getUserId(),
                     onReporteCreado = { navController.popBackStack() },
                     onBack          = { navController.popBackStack() }
                 )
@@ -142,6 +144,7 @@ fun NavGraph(
                 navController  = navController
             ) {
                 MisReportesScreen(
+                    idUsuario    = sessionManager.getUserId(),
                     onBack       = { navController.popBackStack() },
                     onVerDetalle = { id -> 
                         navController.navigate(Routes.Ciudadano.DetalleReporte(id = id)) 
@@ -202,7 +205,7 @@ fun NavGraph(
                 navController  = navController
             ) {
                 ReportesAdminScreen(
-                    idUsuario      = 0,
+                    idUsuario      = sessionManager.getUserId(),
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
