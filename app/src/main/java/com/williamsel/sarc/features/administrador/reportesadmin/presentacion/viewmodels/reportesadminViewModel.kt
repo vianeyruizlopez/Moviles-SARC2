@@ -1,99 +1,114 @@
 package com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.entities.ReporteAdmin
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.usecases.GetReportesAdminUseCase
-import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReportesAdminUIState
+import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReportesAdminUiState
+import com.williamsel.sarc.ui.theme.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
-enum class EstadoFiltro(val idEstado: Int?, val label: String) {
-    TODOS(null, "Todos"),
-    PENDIENTES(1, "Pendientes"),
-    EN_PROCESO(2, "En Proceso"),
-    RESUELTOS(3, "Resueltos")
+enum class EstadoFiltro(val label: String, val id: Int?) {
+    TODOS("Todos", null),
+    PENDIENTES("Pendientes", 1),
+    EN_PROCESO("En Proceso", 2),
+    RESUELTOS("Resueltos", 3)
 }
+
+data class ReporteAdminUiModel(
+    val idReporte: Int,
+    val titulo: String,
+    val descripcion: String,
+    val nombreEstado: String,
+    val estadoColor: Color,
+    val nombreIncidencia: String,
+    val nombreUsuario: String,
+    val ubicacion: String?,
+    val fechaFormateada: String
+)
 
 @HiltViewModel
 class ReportesAdminViewModel @Inject constructor(
     private val getReportesAdminUseCase: GetReportesAdminUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ReportesAdminUIState>(ReportesAdminUIState.Loading)
-    val uiState: StateFlow<ReportesAdminUIState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ReportesAdminUiState())
+    val uiState: StateFlow<ReportesAdminUiState> = _uiState.asStateFlow()
 
-    private val _filtroActual = MutableStateFlow(EstadoFiltro.TODOS)
-    val filtroActual: StateFlow<EstadoFiltro> = _filtroActual.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private val _allReportes = MutableStateFlow<List<ReporteAdmin>>(emptyList())
-
-    private val _filteredReportes = MutableStateFlow<List<ReporteAdmin>>(emptyList())
-    val filteredReportes: StateFlow<List<ReporteAdmin>> = _filteredReportes.asStateFlow()
-
-    private var currentUserId: Int = -1
+    private var searchJob: Job? = null
 
     init {
-        viewModelScope.launch {
-            combine(_allReportes, _filtroActual, _searchQuery) { reportes, filtro, query ->
-                val filteredByState = if (filtro.idEstado == null) {
-                    reportes
-                } else {
-                    reportes.filter { it.idEstado == filtro.idEstado }
-                }
-
-                if (query.isBlank()) {
-                    filteredByState
-                } else {
-                    filteredByState.filter { reporte ->
-                        reporte.titulo.contains(query, ignoreCase = true) ||
-                        reporte.descripcion.contains(query, ignoreCase = true) ||
-                        reporte.nombreIncidencia.contains(query, ignoreCase = true) ||
-                        reporte.nombreUsuario.contains(query, ignoreCase = true) ||
-                        reporte.ubicacion.orEmpty().contains(query, ignoreCase = true)
-                    }
-                }
-            }.collect { filtered ->
-                _filteredReportes.value = filtered
-            }
-        }
+        cargarReportes()
     }
 
-    fun cargarReportes(idUsuario: Int) {
-        currentUserId = idUsuario
+    fun cargarReportes(filtro: EstadoFiltro = _uiState.value.estadoSeleccionado, query: String = _uiState.value.searchQuery) {
         viewModelScope.launch {
-            _uiState.value = ReportesAdminUIState.Loading
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, estadoSeleccionado = filtro, searchQuery = query) }
             try {
-                val reportes = getReportesAdminUseCase(idUsuario)
-                _allReportes.value = reportes
-                _uiState.value = ReportesAdminUIState.Success(reportes)
+                val reportes = getReportesAdminUseCase(filtro.id, if (query.isEmpty()) null else query)
+                val uiModels = reportes.map { reporte -> reporte.toUiModel() }
+                _uiState.update { it.copy(isLoading = false, reportes = uiModels) }
             } catch (e: Exception) {
-                _uiState.value = ReportesAdminUIState.Error(
-                    e.localizedMessage ?: "Error al cargar reportes"
-                )
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al cargar reportes") }
             }
         }
     }
 
-    fun cambiarFiltro(filtro: EstadoFiltro) {
-        _filtroActual.value = filtro
+    fun getEstadoColor(filtro: EstadoFiltro): Color = when (filtro) {
+        EstadoFiltro.TODOS -> SarcGreen
+        EstadoFiltro.PENDIENTES -> OrangeWarning
+        EstadoFiltro.EN_PROCESO -> BlueProceso
+        EstadoFiltro.RESUELTOS -> GreenResuelto
     }
 
-    fun actualizarBusqueda(query: String) {
-        _searchQuery.value = query
-    }
+    private fun ReporteAdmin.toUiModel() = ReporteAdminUiModel(
+        idReporte = this.idReporte,
+        titulo = this.titulo,
+        descripcion = this.descripcion,
+        nombreEstado = this.nombreEstado,
+        estadoColor = when (this.idEstado) {
+            1 -> OrangeWarning
+            2 -> BlueProceso
+            3 -> GreenResuelto
+            else -> TextMid
+        },
+        nombreIncidencia = this.nombreIncidencia,
+        nombreUsuario = this.nombreUsuario,
+        ubicacion = this.ubicacion,
+        fechaFormateada = formatFecha(this.fecha)
+    )
 
-    fun reintentar() {
-        if (currentUserId != -1) {
-            cargarReportes(currentUserId)
+    private fun formatFecha(fecha: String): String = try {
+        val dt = LocalDateTime.parse(fecha, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        dt.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale("es", "MX")))
+    } catch (e: Exception) { fecha }
+
+    fun onSearchQueryChanged(newQuery: String) {
+        _uiState.update { it.copy(searchQuery = newQuery) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(500)
+            cargarReportes(query = newQuery)
         }
+    }
+
+    fun onEstadoFilterChanged(filtro: EstadoFiltro) {
+        cargarReportes(filtro = filtro)
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

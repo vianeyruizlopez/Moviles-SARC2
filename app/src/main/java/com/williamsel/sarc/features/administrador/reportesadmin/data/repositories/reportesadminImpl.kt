@@ -10,10 +10,11 @@ class ReportesAdminRepositoryImpl @Inject constructor(
     private val api: ReportesAdminApi
 ) : ReportesAdminRepository {
 
-    override suspend fun getReportesByUsuario(
-        idUsuario: Int,
-        estado: Int?
-    ): List<ReporteAdmin> {
-        return api.getReportesByUsuario(idUsuario, estado).map { it.toDomain() }
+    override suspend fun getReportes(estado: Int?, query: String?): List<ReporteAdmin> {
+        return try {
+            api.getReportes(estado, query).map { it.toDomain() }
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

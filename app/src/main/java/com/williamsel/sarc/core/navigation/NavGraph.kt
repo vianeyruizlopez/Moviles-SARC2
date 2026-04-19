@@ -204,7 +204,6 @@ fun NavGraph(
                 navController  = navController
             ) {
                 ReportesAdminScreen(
-                    idUsuario      = sessionManager.getUserId(),
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

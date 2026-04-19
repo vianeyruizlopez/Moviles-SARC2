@@ -1,9 +1,12 @@
 package com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens
 
-import com.williamsel.sarc.features.administrador.reportesadmin.domain.entities.ReporteAdmin
+import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels.EstadoFiltro
+import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels.ReporteAdminUiModel
 
-sealed class ReportesAdminUIState {
-    data object Loading : ReportesAdminUIState()
-    data class Success(val reportes: List<ReporteAdmin>) : ReportesAdminUIState()
-    data class Error(val message: String) : ReportesAdminUIState()
-}
+data class ReportesAdminUiState(
+    val isLoading: Boolean = false,
+    val reportes: List<ReporteAdminUiModel> = emptyList(),
+    val errorMessage: String? = null,
+    val searchQuery: String = "",
+    val estadoSeleccionado: EstadoFiltro = EstadoFiltro.TODOS
+)

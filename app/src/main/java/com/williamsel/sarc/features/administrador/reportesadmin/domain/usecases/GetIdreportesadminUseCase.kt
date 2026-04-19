@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetReportesAdminUseCase @Inject constructor(
     private val repository: ReportesAdminRepository
 ) {
-    suspend operator fun invoke(idUsuario: Int, estado: Int? = null): List<ReporteAdmin> {
-        return repository.getReportesByUsuario(idUsuario, estado)
+    suspend operator fun invoke(estado: Int? = null, query: String? = null): List<ReporteAdmin> {
+        return repository.getReportes(estado, query)
     }
 }
