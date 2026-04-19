@@ -1,5 +1,6 @@
 package com.williamsel.sarc.features.administrador.detallereporteadmin.presentacion.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Navigation
@@ -423,8 +425,22 @@ private fun InfoSection(
 private fun BottomActions(
     reporte: DetalleReporteAdmin,
     onComoLlegar: (Double, Double) -> Unit,
-    onCambiarEstado: (Int, Int) -> Unit
+    onCambiarEstado: (Int, Int) -> Unit,
+    viewModel: DetalleReporteAdminViewModel = hiltViewModel()
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        EstadoSelectorDialog(
+            estadoActualId = reporte.idEstado,
+            onDismiss = { showDialog = false },
+            onEstadoSelected = { nuevoId ->
+                viewModel.actualizarEstado(reporte.idReporte, nuevoId)
+                showDialog = false
+            }
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
@@ -467,7 +483,7 @@ private fun BottomActions(
 
             // Botón "Cambiar Estado"
             Button(
-                onClick = { onCambiarEstado(reporte.idReporte, reporte.idEstado) },
+                onClick = { showDialog = true },
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
@@ -488,6 +504,70 @@ private fun BottomActions(
                     fontSize = 14.sp
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun EstadoSelectorDialog(
+    estadoActualId: Int,
+    onDismiss: () -> Unit,
+    onEstadoSelected: (Int) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Cambiar Estado", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                EstadoOption(1, "Pendiente", OrangeWarning, estadoActualId == 1) { onEstadoSelected(1) }
+                EstadoOption(2, "En Proceso", BlueProceso, estadoActualId == 2) { onEstadoSelected(2) }
+                EstadoOption(3, "Resuelto", GreenResuelto, estadoActualId == 3) { onEstadoSelected(3) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = SarcGreen)
+            }
+        }
+    )
+}
+
+@Composable
+private fun EstadoOption(
+    id: Int,
+    nombre: String,
+    color: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = nombre,
+            modifier = Modifier.weight(1f),
+            fontSize = 16.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) SarcGreen else TextDark
+        )
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = SarcGreen,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

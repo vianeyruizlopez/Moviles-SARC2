@@ -13,4 +13,8 @@ class DetalleReporteAdminRepositoryImpl @Inject constructor(
     override suspend fun getReporteById(idReporte: Int): DetalleReporteAdmin {
         return api.getReporteById(idReporte).toDomain()
     }
+
+    override suspend fun actualizarEstado(idReporte: Int, idEstado: Int) {
+        api.actualizarEstado(idReporte, mapOf("id_estado" to idEstado))
+    }
 }

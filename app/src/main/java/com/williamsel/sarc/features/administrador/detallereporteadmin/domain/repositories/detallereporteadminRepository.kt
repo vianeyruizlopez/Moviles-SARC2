@@ -4,4 +4,5 @@ import com.williamsel.sarc.features.administrador.detallereporteadmin.domain.ent
 
 interface DetalleReporteAdminRepository {
     suspend fun getReporteById(idReporte: Int): DetalleReporteAdmin
+    suspend fun actualizarEstado(idReporte: Int, idEstado: Int)
 }

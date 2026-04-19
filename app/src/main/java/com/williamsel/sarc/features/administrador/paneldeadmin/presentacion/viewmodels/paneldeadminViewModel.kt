@@ -42,8 +42,8 @@ class PanelDeAdminViewModel @Inject constructor(
     private val _vistaActiva = MutableStateFlow(VistaPanel.LISTA)
     val vistaActiva: StateFlow<VistaPanel> = _vistaActiva.asStateFlow()
 
-    // Lista de categorías estáticas por ahora o extraídas de los reportes iniciales
-    val categorias = listOf("Todos", "Basura", "Alumbrado", "Baches", "Agua", "Seguridad")
+    // Lista de categorías sincronizadas con la base de datos
+    val categorias = listOf("Todos", "Bache", "Basura", "Alumbrado")
 
     private var searchJob: Job? = null
 
@@ -65,17 +65,17 @@ class PanelDeAdminViewModel @Inject constructor(
             _uiState.value = PanelDeAdminUIState.Loading
             
             val idEstado = when(_estadoSeleccionado.value) {
-                "Pendientes" -> 1
+                "Pendiente" -> 1
                 "En Proceso" -> 2
-                "Resueltos" -> 3
+                "Resuelto" -> 3
                 else -> null
             }
             
-            // Mapeo básico de incidencias (esto debería venir de un endpoint de incidencias)
+            // Mapeo según id_incidencia de la base de datos
             val idIncidencia = when(_categoriaSeleccionada.value) {
-                "Basura" -> 1
-                "Alumbrado" -> 2
-                "Baches" -> 3
+                "Bache" -> 1
+                "Basura" -> 2
+                "Alumbrado" -> 3
                 else -> null
             }
 
