@@ -4,9 +4,7 @@ import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.Res
 import com.williamsel.sarc.features.administrador.paneladmin.domain.repositories.PanelPrincipalAdminRepository
 import javax.inject.Inject
 
-/**
- * Caso de uso para obtener las estadísticas globales del panel de administración.
- */
+
 class GetResumenReportesUseCase @Inject constructor(
     private val repository: PanelPrincipalAdminRepository
 ) {

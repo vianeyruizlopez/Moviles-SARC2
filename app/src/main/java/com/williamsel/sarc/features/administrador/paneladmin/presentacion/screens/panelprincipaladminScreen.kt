@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.ResumenReportes
 import com.williamsel.sarc.features.administrador.paneladmin.presentacion.viewmodels.PanelPrincipalAdminViewModel
 import com.williamsel.sarc.ui.theme.*
 
@@ -60,7 +59,7 @@ fun PanelPrincipalAdminScreen(
                     ErrorCard(mensaje = state.mensaje, onReintentar = viewModel::cargarResumen)
                 }
                 is PanelPrincipalAdminUIState.Success -> {
-                    EstadisticasGrid(resumen = state.resumen)
+                    EstadisticasGrid(uiModel = state.uiModel)
                 }
             }
 
@@ -140,12 +139,12 @@ private fun PanelTopBar(onSalir: () -> Unit) {
 
 
 @Composable
-private fun EstadisticasGrid(resumen: ResumenReportes) {
+private fun EstadisticasGrid(uiModel: PanelPrincipalUIModel) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatCard(
                 label  = "Total\nRepor.",
-                valor  = resumen.total.toString(),
+                valor  = uiModel.totalReportes,
                 icono  = Icons.Default.Description,
                 iconoBg = Color(0xFFE8F0FE),
                 iconoColor = BlueProceso,
@@ -154,7 +153,7 @@ private fun EstadisticasGrid(resumen: ResumenReportes) {
             )
             StatCard(
                 label  = "Pendientes",
-                valor  = resumen.pendientes.toString(),
+                valor  = uiModel.pendientes,
                 icono  = Icons.Default.Warning,
                 iconoBg    = Color(0xFFFFF3E0),
                 iconoColor = OrangeWarning,
@@ -165,7 +164,7 @@ private fun EstadisticasGrid(resumen: ResumenReportes) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatCard(
                 label  = "En Proceso",
-                valor  = resumen.enProceso.toString(),
+                valor  = uiModel.enProceso,
                 icono  = Icons.Default.PlayCircle,
                 iconoBg    = Color(0xFFE0F7F4),
                 iconoColor = BlueProceso,
@@ -174,7 +173,7 @@ private fun EstadisticasGrid(resumen: ResumenReportes) {
             )
             StatCard(
                 label  = "Resueltos",
-                valor  = resumen.resueltos.toString(),
+                valor  = uiModel.resueltos,
                 icono  = Icons.Default.CheckCircle,
                 iconoBg    = CardMintBg,
                 iconoColor = GreenResuelto,
