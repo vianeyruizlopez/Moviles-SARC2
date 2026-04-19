@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.williamsel.sarc.core.session.SessionManager
 
 import com.williamsel.sarc.features.publico.incio.presentacion.screens.InicioScreen
@@ -16,6 +17,7 @@ import com.williamsel.sarc.features.ciudadano.panelciu.presentacion.screens.Pane
 import com.williamsel.sarc.features.ciudadano.mapaciu.presentacion.screens.MapaCiudadanoScreen
 import com.williamsel.sarc.features.ciudadano.crearreportes.presentacion.screens.CrearReporteScreen
 import com.williamsel.sarc.features.ciudadano.misreportesciu.presentacion.screens.MisReportesScreen
+import com.williamsel.sarc.features.ciudadano.detallereporteciu.presentacion.screens.DetallereporteciuScreen
 
 import com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens.PanelPrincipalAdminScreen
 import com.williamsel.sarc.features.administrador.mapaadmin.presentacion.screens.MapaAdminScreen
@@ -32,12 +34,11 @@ fun NavGraph(
     navController: NavHostController,
     sessionManager: SessionManager
 ) {
-    val startDestination = when {
-        !sessionManager.isLoggedIn()                        -> Routes.Publico.Inicio.route
-        sessionManager.getRol() == "SuperAdministrador"    -> Routes.SuperAdmin.Panel.route
-        sessionManager.getRol() == "Administrador"         -> Routes.Admin.Panel.route
-        sessionManager.getRol() == "Ciudadano"             -> Routes.Ciudadano.Panel.route
-        else                                               -> Routes.Publico.Inicio.route
+    val startDestination: Any = when {
+        !sessionManager.isLoggedIn()                     -> Routes.Publico.Inicio
+        sessionManager.getRol() == "SuperAdministrador" -> Routes.SuperAdmin.Panel
+        sessionManager.getRol() == "Administrador"      -> Routes.Admin.Panel
+        else                                            -> Routes.Ciudadano.Panel
     }
 
     NavHost(
@@ -45,65 +46,65 @@ fun NavGraph(
         startDestination = startDestination
     ) {
 
-        composable(Routes.Publico.Inicio.route) {
+        composable<Routes.Publico.Inicio> {
             InicioScreen(
-                onIniciarSesion = { navController.navigate(Routes.Publico.Login.route) },
-                onCrearCuenta   = { navController.navigate(Routes.Publico.Registro.route) },
-                onTerminos      = { navController.navigate(Routes.Publico.Terminos.route) },
-                onPrivacidad    = { navController.navigate(Routes.Publico.Privacidad.route) }
+                onIniciarSesion = { navController.navigate(Routes.Publico.Login) },
+                onCrearCuenta   = { navController.navigate(Routes.Publico.Registro) },
+                onTerminos      = { navController.navigate(Routes.Publico.Terminos) },
+                onPrivacidad    = { navController.navigate(Routes.Publico.Privacidad) }
             )
         }
 
-        composable(Routes.Publico.Login.route) {
+        composable<Routes.Publico.Login> {
             LoginScreen(
                 onLoginSuccess = { rol ->
-                    val destino = when (rol) {
-                        "SuperAdministrador" -> Routes.SuperAdmin.Panel.route
-                        "Administrador"      -> Routes.Admin.Panel.route
-                        else                 -> Routes.Ciudadano.Panel.route
+                    val destino: Any = when (rol) {
+                        "SuperAdministrador" -> Routes.SuperAdmin.Panel
+                        "Administrador"      -> Routes.Admin.Panel
+                        else                 -> Routes.Ciudadano.Panel
                     }
                     navController.navigate(destino) {
-                        popUpTo(Routes.Publico.Inicio.route) { inclusive = true }
+                        popUpTo(Routes.Publico.Inicio) { inclusive = true }
                     }
                 },
-                onCrearCuenta  = { navController.navigate(Routes.Publico.Registro.route) },
+                onCrearCuenta  = { navController.navigate(Routes.Publico.Registro) },
                 onVolverInicio = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.Publico.Registro.route) {
+        composable<Routes.Publico.Registro> {
             RegistroScreen(
                 onRegistroExitoso = {
-                    navController.navigate(Routes.Ciudadano.Panel.route) {
-                        popUpTo(Routes.Publico.Inicio.route) { inclusive = true }
+                    navController.navigate(Routes.Ciudadano.Panel) {
+                        popUpTo(Routes.Publico.Inicio) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.Publico.Terminos.route) {
+        composable<Routes.Publico.Terminos> {
             TerminosScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(Routes.Publico.Privacidad.route) {
+        composable<Routes.Publico.Privacidad> {
             PrivacidadScreen(onBack = { navController.popBackStack() })
         }
 
 
-        composable(Routes.Ciudadano.Panel.route) {
+        composable<Routes.Ciudadano.Panel> {
             GuardedRoute(
                 requiredRol    = "Ciudadano",
                 sessionManager = sessionManager,
                 navController  = navController
             ) {
                 PanelCiudadanoScreen(
-                    onNavigateToMapa         = { navController.navigate(Routes.Ciudadano.Mapa.route) },
-                    onNavigateToCrearReporte = { navController.navigate(Routes.Ciudadano.CrearReporte.route) },
-                    onNavigateToMisReportes  = { navController.navigate(Routes.Ciudadano.MisReportes.route) },
+                    onNavigateToMapa         = { navController.navigate(Routes.Ciudadano.Mapa) },
+                    onNavigateToCrearReporte = { navController.navigate(Routes.Ciudadano.CrearReporte) },
+                    onNavigateToMisReportes  = { navController.navigate(Routes.Ciudadano.MisReportes) },
                     onLogout = {
                         sessionManager.clearSession()
-                        navController.navigate(Routes.Publico.Inicio.route) {
+                        navController.navigate(Routes.Publico.Inicio) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -111,7 +112,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Ciudadano.Mapa.route) {
+        composable<Routes.Ciudadano.Mapa> {
             GuardedRoute(
                 requiredRol    = "Ciudadano",
                 sessionManager = sessionManager,
@@ -121,7 +122,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Ciudadano.CrearReporte.route) {
+        composable<Routes.Ciudadano.CrearReporte> {
             GuardedRoute(
                 requiredRol    = "Ciudadano",
                 sessionManager = sessionManager,
@@ -134,30 +135,49 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Ciudadano.MisReportes.route) {
+        composable<Routes.Ciudadano.MisReportes> {
             GuardedRoute(
                 requiredRol    = "Ciudadano",
                 sessionManager = sessionManager,
                 navController  = navController
             ) {
-                MisReportesScreen(onBack = { navController.popBackStack() })
+                MisReportesScreen(
+                    onBack       = { navController.popBackStack() },
+                    onVerDetalle = { id -> 
+                        navController.navigate(Routes.Ciudadano.DetalleReporte(id = id)) 
+                    }
+                )
+            }
+        }
+
+        composable<Routes.Ciudadano.DetalleReporte> { backStackEntry ->
+            val route: Routes.Ciudadano.DetalleReporte = backStackEntry.toRoute()
+            GuardedRoute(
+                requiredRol    = "Ciudadano",
+                sessionManager = sessionManager,
+                navController  = navController
+            ) {
+                DetallereporteciuScreen(
+                    reporteId = route.id.toString(),
+                    onBack    = { navController.popBackStack() }
+                )
             }
         }
 
 
-        composable(Routes.Admin.Panel.route) {
+        composable<Routes.Admin.Panel> {
             GuardedRoute(
                 requiredRol    = "Administrador",
                 sessionManager = sessionManager,
                 navController  = navController
             ) {
                 PanelPrincipalAdminScreen(
-                    onNavegaMapa       = { navController.navigate(Routes.Admin.Mapa.route) },
-                    onNavegaReportes   = { navController.navigate(Routes.Admin.Reportes.route) },
-                    onNavegaAdminPanel = { navController.navigate(Routes.Admin.EstadoRepo.route) },
+                    onNavegaMapa       = { navController.navigate(Routes.Admin.Mapa) },
+                    onNavegaReportes   = { navController.navigate(Routes.Admin.Reportes) },
+                    onNavegaAdminPanel = { navController.navigate(Routes.Admin.EstadoRepo) },
                     onSalir = {
                         sessionManager.clearSession()
-                        navController.navigate(Routes.Publico.Inicio.route) {
+                        navController.navigate(Routes.Publico.Inicio) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -165,7 +185,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Admin.Mapa.route) {
+        composable<Routes.Admin.Mapa> {
             GuardedRoute(
                 requiredRol    = "Administrador",
                 sessionManager = sessionManager,
@@ -175,7 +195,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Admin.Reportes.route) {
+        composable<Routes.Admin.Reportes> {
             GuardedRoute(
                 requiredRol    = "Administrador",
                 sessionManager = sessionManager,
@@ -188,7 +208,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.Admin.EstadoRepo.route) {
+        composable<Routes.Admin.EstadoRepo> {
             GuardedRoute(
                 requiredRol    = "Administrador",
                 sessionManager = sessionManager,
@@ -196,25 +216,26 @@ fun NavGraph(
             ) {
                 PanelDeAdminScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onVerDetalle   = { /* TODO: navigate to detalle */ }
+                    onVerDetalle   = { id ->
+                    }
                 )
             }
         }
 
 
-        composable(Routes.SuperAdmin.Panel.route) {
+        composable<Routes.SuperAdmin.Panel> {
             GuardedRoute(
                 requiredRol    = "SuperAdministrador",
                 sessionManager = sessionManager,
                 navController  = navController
             ) {
                 PanelSuperAdminScreen(
-                    onNavigateToUsuarios     = { navController.navigate(Routes.SuperAdmin.TodosUsuarios.route) },
-                    onNavigateToCrearAdmin   = { navController.navigate(Routes.SuperAdmin.CrearAdmin.route) },
-                    onNavigateToEstadisticas = { navController.navigate(Routes.SuperAdmin.Estadisticas.route) },
+                    onNavigateToUsuarios     = { navController.navigate(Routes.SuperAdmin.TodosUsuarios) },
+                    onNavigateToCrearAdmin   = { navController.navigate(Routes.SuperAdmin.CrearAdmin) },
+                    onNavigateToEstadisticas = { navController.navigate(Routes.SuperAdmin.Estadisticas) },
                     onLogout = {
                         sessionManager.clearSession()
-                        navController.navigate(Routes.Publico.Inicio.route) {
+                        navController.navigate(Routes.Publico.Inicio) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -222,7 +243,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.SuperAdmin.TodosUsuarios.route) {
+        composable<Routes.SuperAdmin.TodosUsuarios> {
             GuardedRoute(
                 requiredRol    = "SuperAdministrador",
                 sessionManager = sessionManager,
@@ -232,7 +253,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.SuperAdmin.CrearAdmin.route) {
+        composable<Routes.SuperAdmin.CrearAdmin> {
             GuardedRoute(
                 requiredRol    = "SuperAdministrador",
                 sessionManager = sessionManager,
@@ -242,7 +263,7 @@ fun NavGraph(
             }
         }
 
-        composable(Routes.SuperAdmin.Estadisticas.route) {
+        composable<Routes.SuperAdmin.Estadisticas> {
             GuardedRoute(
                 requiredRol    = "SuperAdministrador",
                 sessionManager = sessionManager,

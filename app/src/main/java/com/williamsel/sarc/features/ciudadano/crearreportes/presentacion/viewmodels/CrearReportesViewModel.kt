@@ -3,6 +3,7 @@ package com.williamsel.sarc.features.ciudadano.crearreportes.presentacion.viewmo
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamsel.sarc.core.hardware.domain.CameraManager
 import com.williamsel.sarc.core.hardware.domain.NetworkManager
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.entities.CategoriaIncidencia
 import com.williamsel.sarc.features.ciudadano.crearreportes.domain.entities.NuevoReporte
@@ -25,7 +26,7 @@ class CrearReportesViewModel @Inject constructor(
     private val getCategoriasUseCase: GetCategoriasUseCase,
     private val obtenerUbicacionUseCase: ObtenerUbicacionUseCase,
     private val networkManager: NetworkManager,
-    private val cameraManager: com.williamsel.sarc.core.hardware.domain.CameraManager
+    private val cameraManager: CameraManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CrearReportesUiState())

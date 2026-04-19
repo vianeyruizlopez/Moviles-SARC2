@@ -16,7 +16,7 @@ fun GuardedRoute(
 
     if (!sessionManager.isLoggedIn()) {
         LaunchedEffect(Unit) {
-            navController.navigate(Routes.Publico.Login.route) {
+            navController.navigate(Routes.Publico.Login) {
                 popUpTo(0) { inclusive = true }
             }
         }
@@ -25,10 +25,13 @@ fun GuardedRoute(
 
     if (rolActual != requiredRol) {
         LaunchedEffect(Unit) {
-            val destino = if (rolActual == "Administrador")
-                Routes.Admin.Panel.route
+            val destino: Any = if (rolActual == "Administrador")
+                Routes.Admin.Panel
+            else if (rolActual == "SuperAdministrador")
+                Routes.SuperAdmin.Panel
             else
-                Routes.Ciudadano.Panel.route
+                Routes.Ciudadano.Panel
+                
             navController.navigate(destino) { popUpTo(0) { inclusive = true } }
         }
         return

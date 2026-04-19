@@ -18,7 +18,7 @@ fun NavHost() {
         AuthEventBus.events.collect { event ->
             when (event) {
                 is AuthEventBus.AuthEvent.SessionExpired -> {
-                    navController.navigate(Routes.Publico.Login.route) {
+                    navController.navigate(Routes.Publico.Login) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
