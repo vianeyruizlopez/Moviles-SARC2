@@ -8,14 +8,14 @@ import com.williamsel.sarc.features.administrador.mapaadmin.domain.entities.Mapa
 fun MapaReporteDto.toDomain(): MapaReporte = MapaReporte(
     idReporte     = idReporte,
     idUsuario     = idUsuario,
-    nombreUsuario = nombreUsuario,
-    titulo        = titulo.trim('"'),
-    descripcion   = descripcion.trim('"'),
-    ubicacion     = ubicacion,
+    nombreUsuario = nombreUsuario ?: "Usuario anónimo",
+    titulo        = titulo ?: "Sin título",
+    descripcion   = descripcion ?: "Sin descripción",
+    ubicacion     = ubicacion ?: "Ubicación desconocida",
     latitud       = latitud,
     longitud      = longitud,
-    incidencia    = CategoriaIncidencia.fromNombre(nombreIncidencia),
-    estado        = EstadoMapaReporte.fromNombre(nombreEstado),
+    incidencia    = CategoriaIncidencia.fromNombre(nombreIncidencia ?: ""),
+    estado        = EstadoMapaReporte.fromNombre(nombreEstado ?: ""),
     imagen        = imagen,
-    fecha         = fecha
+    fecha         = fecha ?: "Fecha no disponible"
 )

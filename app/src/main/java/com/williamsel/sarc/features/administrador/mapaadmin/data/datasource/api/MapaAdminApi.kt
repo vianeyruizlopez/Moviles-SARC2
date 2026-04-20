@@ -5,12 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface MapaAdminApi {
-
-    /**
-     * Obtiene todos los reportes para mostrar en el mapa del admin.
-     * GET /reporte/mapa?incidencia={id}&estado={id}
-     */
-    @GET("reporte/mapa")
+    @GET("reporte/admin/reportes")
     suspend fun getReportesParaMapa(
         @Query("incidencia") idIncidencia: Int? = null,
         @Query("estado")     idEstado: Int?     = null

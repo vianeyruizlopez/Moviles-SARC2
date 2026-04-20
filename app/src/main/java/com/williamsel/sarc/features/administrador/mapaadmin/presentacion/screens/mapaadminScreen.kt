@@ -1,9 +1,10 @@
 package com.williamsel.sarc.features.administrador.mapaadmin.presentacion.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,43 +12,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.williamsel.sarc.features.administrador.mapaadmin.domain.entities.CategoriaIncidencia
 import com.williamsel.sarc.features.administrador.mapaadmin.domain.entities.EstadoMapaReporte
-import com.williamsel.sarc.features.administrador.mapaadmin.domain.entities.MapaReporte
 import com.williamsel.sarc.features.administrador.mapaadmin.presentacion.viewmodels.MapaAdminViewModel
-import com.williamsel.sarc.ui.theme.*
-import kotlinx.coroutines.launch
 
-// ── Colores de marcador por estado ────────────────────────────────────────────
-private fun hueParaEstado(estado: EstadoMapaReporte): Float = when (estado) {
-    EstadoMapaReporte.PENDIENTE  -> BitmapDescriptorFactory.HUE_ORANGE
-    EstadoMapaReporte.EN_PROCESO -> BitmapDescriptorFactory.HUE_AZURE
-    EstadoMapaReporte.RESUELTO   -> BitmapDescriptorFactory.HUE_GREEN
-}
-
-private val ColorPendiente  = Color(0xFFFF9800)
-private val ColorEnProceso  = Color(0xFF2196F3)
-private val ColorResuelto   = Color(0xFF4CAF50)
-
-private fun colorEstado(estado: EstadoMapaReporte) = when (estado) {
-    EstadoMapaReporte.PENDIENTE  -> ColorPendiente
-    EstadoMapaReporte.EN_PROCESO -> ColorEnProceso
-    EstadoMapaReporte.RESUELTO   -> ColorResuelto
-}
-
-// ── Pantalla principal ────────────────────────────────────────────────────────
+private val SUCHIAPA = LatLng(16.6167, -93.1000)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,366 +33,297 @@ fun MapaAdminScreen(
     onVolver: () -> Unit = {},
     viewModel: MapaAdminViewModel = hiltViewModel()
 ) {
-    val uiState           by viewModel.uiState.collectAsStateWithLifecycle()
-    val categoriaActiva   by viewModel.categoriaSeleccionada.collectAsStateWithLifecycle()
-    val estadoActivo      by viewModel.estadoSeleccionado.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsState()
 
-    // Posición inicial: Suchiapa / Tuxtla área
-    val posicionInicial = LatLng(16.6069, -93.1027)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(posicionInicial, 11f)
+        position = CameraPosition.fromLatLngZoom(SUCHIAPA, 13f)
     }
 
-    // Bottom sheet de detalle
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    val scope      = rememberCoroutineScope()
-    var reporteSeleccionado by remember { mutableStateOf<MapaReporte?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(Unit) {
+        viewModel.verificarPermisoUbicacion()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ── Google Map ───────────────────────────────────────
         GoogleMap(
-            modifier            = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            uiSettings          = MapUiSettings(
-                zoomControlsEnabled   = false,
-                myLocationButtonEnabled = false,
-                mapToolbarEnabled     = false
-            ),
-            properties = MapProperties(mapType = MapType.NORMAL)
+            properties = MapProperties(isMyLocationEnabled = state.tienePermisoUbicacion),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                myLocationButtonEnabled = state.tienePermisoUbicacion
+            )
         ) {
-            if (uiState is MapaAdminUIState.Success) {
-                val reportes = (uiState as MapaAdminUIState.Success).reportes
-                reportes.forEach { reporte ->
-                    val pos = LatLng(reporte.latitud, reporte.longitud)
-                    Marker(
-                        state   = MarkerState(position = pos),
-                        title   = reporte.titulo,
-                        snippet = reporte.estado.etiqueta,
-                        icon    = BitmapDescriptorFactory.defaultMarker(hueParaEstado(reporte.estado)),
-                        onClick = { _ ->
-                            reporteSeleccionado = reporte
-                            scope.launch { sheetState.show() }
-                            true
+            state.reportes.forEach { reporte ->
+                Marker(
+                    state = MarkerState(position = LatLng(reporte.latitud, reporte.longitud)),
+                    title = reporte.titulo,
+                    snippet = reporte.categoriaLabel,
+                    icon = BitmapDescriptorFactory.defaultMarker(reporte.marcadorColor),
+                    onClick = {
+                        viewModel.onMarcadorSeleccionado(reporte)
+                        false
+                    }
+                )
+            }
+        }
+
+        // Top Header
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onVolver) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Mapa de Gestión",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "Control administrativo territorial",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        )
+                    }
+                    IconButton(onClick = viewModel::cargarReportes) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Actualizar",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = state.mostrarFiltros,
+                enter = slideInVertically(),
+                exit = slideOutVertically()
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                    shadowElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = "Filtros de Control", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+
+                        DropdownSelector(
+                            label = "Incidencia",
+                            opciones = CategoriaIncidencia.entries.map { it.etiqueta },
+                            seleccionado = state.categoriaSeleccionada?.etiqueta ?: "Todos",
+                            onSeleccionar = { etiqueta ->
+                                val cat = CategoriaIncidencia.fromNombre(etiqueta)
+                                viewModel.cambiarCategoria(if (cat == CategoriaIncidencia.TODOS) null else cat)
+                            }
+                        )
+
+                        DropdownSelector(
+                            label = "Estado de Atención",
+                            opciones = listOf("Todos") + EstadoMapaReporte.entries.map { it.etiqueta },
+                            seleccionado = state.estadoSeleccionado?.etiqueta ?: "Todos",
+                            onSeleccionar = { etiqueta ->
+                                val est = if (etiqueta == "Todos") null else EstadoMapaReporte.fromNombre(etiqueta)
+                                viewModel.cambiarEstado(est)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        if (state.reportes.isNotEmpty()) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 16.dp)
+                    .navigationBarsPadding(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shadowElevation = 2.dp
+            ) {
+                Text(
+                    text = "${state.reportes.size} reportes activos",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+
+        FloatingActionButton(
+            onClick = viewModel::toggleFiltros,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .navigationBarsPadding(),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ) {
+            Icon(
+                imageVector = if (state.mostrarFiltros) Icons.Default.FilterListOff else Icons.Default.FilterList,
+                contentDescription = "Filtros"
+            )
+        }
+
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+
+    if (state.reporteSeleccionado != null) {
+        ModalBottomSheet(
+            onDismissRequest = viewModel::onCerrarDetalleReporte,
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            DetalleReporteAdminSheet(
+                reporte = state.reporteSeleccionado!!,
+                onCerrar = viewModel::onCerrarDetalleReporte
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DropdownSelector(
+    label: String,
+    opciones: List<String>,
+    seleccionado: String,
+    onSeleccionar: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Column {
+        Text(text = label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = seleccionado,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                opciones.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = { Text(opcion, fontSize = 13.sp) },
+                        onClick = {
+                            onSeleccionar(opcion)
+                            expanded = false
                         }
                     )
                 }
             }
         }
-
-        // ── Top bar flotante ──────────────────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Cabecera
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SarcGreen)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                IconButton(
-                    onClick  = onVolver,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.15f))
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White, modifier = Modifier.size(18.dp))
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Mapa Interactivo", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Visualización geográfica", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
-                }
-                if (uiState is MapaAdminUIState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                }
-            }
-
-            // Panel de filtros
-            FiltrosPanel(
-                categoriaActiva = categoriaActiva,
-                estadoActivo    = estadoActivo,
-                onCategoriaChange = viewModel::cambiarCategoria,
-                onEstadoChange    = viewModel::cambiarEstado
-            )
-        }
-
-        // ── Leyenda de colores (abajo derecha) ───────────────
-        LeyendaEstados(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 12.dp, bottom = 24.dp)
-        )
-
-        // ── Error overlay ─────────────────────────────────────
-        if (uiState is MapaAdminUIState.Error) {
-            Surface(
-                modifier  = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                shape     = RoundedCornerShape(12.dp),
-                color     = Color(0xFFFCE4EC),
-                shadowElevation = 4.dp
-            ) {
-                Row(
-                    modifier              = Modifier.padding(12.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = Color(0xFFD32F2F))
-                    Text(
-                        (uiState as MapaAdminUIState.Error).mensaje,
-                        color    = Color(0xFFD32F2F),
-                        fontSize = 13.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(onClick = viewModel::cargarReportes) {
-                        Text("Reintentar", color = SarcGreen, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-
-    // ── Bottom Sheet de detalle del reporte ───────────────────
-    reporteSeleccionado?.let { reporte ->
-        if (sheetState.isVisible || sheetState.currentValue != SheetValue.Hidden) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    scope.launch { sheetState.hide() }
-                    reporteSeleccionado = null
-                },
-                sheetState     = sheetState,
-                shape          = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                containerColor = BackgroundLight
-            ) {
-                DetalleReporteSheet(reporte = reporte)
-            }
-        }
     }
 }
 
-// ── Panel de filtros ──────────────────────────────────────────────────────────
-
 @Composable
-private fun FiltrosPanel(
-    categoriaActiva: CategoriaIncidencia?,
-    estadoActivo: EstadoMapaReporte?,
-    onCategoriaChange: (CategoriaIncidencia?) -> Unit,
-    onEstadoChange: (EstadoMapaReporte?) -> Unit
+private fun DetalleReporteAdminSheet(
+    reporte: ReporteMapaUiModel,
+    onCerrar: () -> Unit
 ) {
-    var expandido by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .shadow(3.dp, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceWhite)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Cabecera del panel
-        Row(
-            modifier          = Modifier
-                .fillMaxWidth()
-                .clickable { expandido = !expandido },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Icon(Icons.Default.FilterList, contentDescription = null, tint = SarcGreen, modifier = Modifier.size(18.dp))
-            Text("Filtros", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = TextDark, modifier = Modifier.weight(1f))
-            Icon(
-                if (expandido) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = null, tint = TextLight
-            )
-        }
-
-        if (expandido) {
-            // Categoría
-            Text("Categoría", fontSize = 11.sp, color = TextLight, fontWeight = FontWeight.Medium)
-            FiltroDropdown(
-                label    = categoriaActiva?.etiqueta ?: "Todos",
-                opciones = listOf("Todos") + CategoriaIncidencia.entries
-                    .filter { it != CategoriaIncidencia.TODOS }
-                    .map { it.etiqueta },
-                onSeleccionar = { seleccion ->
-                    onCategoriaChange(
-                        if (seleccion == "Todos") null
-                        else CategoriaIncidencia.entries.find { it.etiqueta == seleccion }
-                    )
-                }
-            )
-
-            // Estado
-            Text("Estado", fontSize = 11.sp, color = TextLight, fontWeight = FontWeight.Medium)
-            FiltroDropdown(
-                label    = estadoActivo?.etiqueta ?: "Todos",
-                opciones = listOf("Todos") + EstadoMapaReporte.entries.map { it.etiqueta },
-                onSeleccionar = { seleccion ->
-                    onEstadoChange(
-                        if (seleccion == "Todos") null
-                        else EstadoMapaReporte.entries.find { it.etiqueta == seleccion }
-                    )
-                }
-            )
-        } else {
-            // Resumen compacto de filtros activos
-            val resumen = buildString {
-                append(categoriaActiva?.etiqueta ?: "Todos")
-                append(" · ")
-                append(estadoActivo?.etiqueta ?: "Todos")
-            }
-            Text(resumen, fontSize = 12.sp, color = TextLight)
-        }
-    }
-}
-
-@Composable
-private fun FiltroDropdown(
-    label: String,
-    opciones: List<String>,
-    onSeleccionar: (String) -> Unit
-) {
-    var expandido by remember { mutableStateOf(false) }
-
-    Box {
-        OutlinedButton(
-            onClick       = { expandido = true },
-            shape         = RoundedCornerShape(8.dp),
-            colors        = ButtonDefaults.outlinedButtonColors(contentColor = TextDark),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-            modifier      = Modifier.fillMaxWidth()
-        ) {
-            Text(label, fontSize = 13.sp, modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(18.dp))
-        }
-        DropdownMenu(
-            expanded         = expandido,
-            onDismissRequest = { expandido = false }
-        ) {
-            opciones.forEach { opcion ->
-                DropdownMenuItem(
-                    text    = { Text(opcion, fontSize = 13.sp) },
-                    onClick = {
-                        onSeleccionar(opcion)
-                        expandido = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-// ── Leyenda ───────────────────────────────────────────────────────────────────
-
-@Composable
-private fun LeyendaEstados(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .shadow(3.dp, RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceWhite)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        LeyendaItem(color = ColorPendiente,  label = "Pendiente")
-        LeyendaItem(color = ColorEnProceso,  label = "En Proceso")
-        LeyendaItem(color = ColorResuelto,   label = "Resuelto")
-    }
-}
-
-@Composable
-private fun LeyendaItem(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
-        Text(label, fontSize = 11.sp, color = TextDark)
-    }
-}
-
-// ── Bottom Sheet de detalle ───────────────────────────────────────────────────
-
-@Composable
-private fun DetalleReporteSheet(reporte: MapaReporte) {
-    val estadoColor = colorEstado(reporte.estado)
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Indicador
         Box(
             modifier = Modifier
-                .width(40.dp).height(4.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFE0E0E0))
+                .width(40.dp)
+                .height(4.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp))
                 .align(Alignment.CenterHorizontally)
         )
-        Spacer(Modifier.height(4.dp))
 
-        // Estado badge
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(reporte.titulo, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = TextDark, modifier = Modifier.weight(1f))
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = estadoColor.copy(alpha = 0.15f)
-            ) {
-                Text(
-                    reporte.estado.etiqueta,
-                    fontSize   = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = estadoColor,
-                    modifier   = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Surface(shape = RoundedCornerShape(4.dp), color = reporte.categoriaColor, modifier = Modifier.size(12.dp)) {}
+            Text(text = reporte.titulo, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
+            IconButton(onClick = onCerrar, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Close, contentDescription = "Cerrar")
             }
         }
 
-        Text(reporte.descripcion, fontSize = 14.sp, color = TextLight)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AdminChip(texto = reporte.categoriaLabel)
+            AdminChip(texto = reporte.estadoLabel, color = reporte.estadoColor)
+        }
 
-        HorizontalDivider(color = Color(0xFFF0F0F0))
+        Text(text = reporte.descripcion, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        DetalleRow(icon = Icons.Default.Category,   label = "Incidencia", valor = reporte.incidencia.etiqueta)
-        DetalleRow(icon = Icons.Default.Person,      label = "Reportado por", valor = reporte.nombreUsuario)
-        DetalleRow(icon = Icons.Default.LocationOn,  label = "Ubicación", valor = reporte.ubicacion)
-        DetalleRow(icon = Icons.Default.CalendarToday, label = "Fecha",    valor = reporte.fecha.take(10))
-        DetalleRow(
-            icon  = Icons.Default.Map,
-            label = "Coordenadas",
-            valor = "%.5f, %.5f".format(reporte.latitud, reporte.longitud)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+            Text(text = reporte.coordenadasTexto, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        reporte.fechaTexto?.let { fecha ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                Text(text = fecha, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 
 @Composable
-private fun DetalleRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    valor: String
-) {
-    Row(
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Icon(icon, contentDescription = null, tint = SarcGreen, modifier = Modifier.size(18.dp).padding(top = 1.dp))
-        Column {
-            Text(label, fontSize = 11.sp, color = TextLight)
-            Text(valor, fontSize = 13.sp, color = TextDark, fontWeight = FontWeight.Medium)
-        }
+private fun AdminChip(texto: String, color: Color = MaterialTheme.colorScheme.secondaryContainer) {
+    Surface(shape = RoundedCornerShape(20.dp), color = color) {
+        Text(
+            text = texto,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            color = if (color == MaterialTheme.colorScheme.secondaryContainer) MaterialTheme.colorScheme.onSecondaryContainer else Color.White
+        )
     }
 }

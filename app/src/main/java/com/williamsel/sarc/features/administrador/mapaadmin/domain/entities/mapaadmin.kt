@@ -31,13 +31,12 @@ enum class CategoriaIncidencia(val idIncidencia: Int, val etiqueta: String) {
     TODOS(0,      "Todos"),
     BACHE(1,      "Bache"),
     BASURA(2,     "Basura"),
-    LUMINARIA(3,  "Luminaria"),
-    DRENAJE(4,    "Drenaje"),
-    OTRO(5,       "Otro");
+    LUMINARIA(3,  "Luminaria");
+
 
     companion object {
-        fun fromId(id: Int) = entries.find { it.idIncidencia == id } ?: OTRO
+        fun fromId(id: Int) = entries.find { it.idIncidencia == id } ?: TODOS
         fun fromNombre(nombre: String) =
-            entries.find { it.etiqueta.equals(nombre, ignoreCase = true) } ?: OTRO
+            entries.find { it.etiqueta.equals(nombre, ignoreCase = true) } ?: TODOS
     }
 }

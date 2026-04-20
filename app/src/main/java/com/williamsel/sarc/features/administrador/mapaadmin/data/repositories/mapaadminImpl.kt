@@ -16,7 +16,7 @@ class MapaAdminImpl @Inject constructor(
     ): Result<List<MapaReporte>> =
         runCatching {
             api.getReportesParaMapa(idIncidencia, idEstado)
-                .filter { it.latitud != 0.0 && it.longitud != 0.0 } // descartar sin coords
+                .filter { it.latitud != 0.0 && it.longitud != 0.0 }
                 .map { it.toDomain() }
         }
 }
