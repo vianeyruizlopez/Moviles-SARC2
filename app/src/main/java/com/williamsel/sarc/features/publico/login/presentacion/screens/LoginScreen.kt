@@ -1,9 +1,5 @@
 package com.williamsel.sarc.features.publico.login.presentacion.screens
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -41,21 +37,12 @@ fun LoginScreen(
     val state by viewModel.uiState.collectAsState()
     var contrasenaVisible by remember { mutableStateOf(false) }
 
-    val googleLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            viewModel.onGoogleSignInResult(result.data)
-        } else {
-            viewModel.onGoogleSignInResult(null)
-        }
-    }
-
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
             onLoginSuccess(state.rol ?: "CIUDADANO")
         }
     }
+
     if (!state.sessionChecked) {
         Box(
             modifier = Modifier
@@ -86,6 +73,7 @@ fun LoginScreen(
         }
         return
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -141,78 +129,8 @@ fun LoginScreen(
                     lineHeight = 19.sp
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                OutlinedButton(
-                    onClick = {
-                        viewModel.iniciarLoginConGoogle { intentSender ->
-                            intentSender?.let {
-                                googleLauncher.launch(
-                                    IntentSenderRequest.Builder(it).build()
-                                )
-                            }
-                        }
-                    },
-                    enabled = !state.isGoogleLoading && !state.isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        0.dp,
-                        MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    if (state.isGoogleLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = "G",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Continuar con Google",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                    Text(
-                        text = "  O CONTINUA CON EMAIL  ",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.5.sp
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = state.correo,
                     onValueChange = viewModel::onCorreoChange,
@@ -305,6 +223,7 @@ fun LoginScreen(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
+
                 AnimatedVisibility(visible = state.errorMessage != null) {
                     Text(
                         text = state.errorMessage ?: "",
@@ -320,7 +239,7 @@ fun LoginScreen(
 
                 Button(
                     onClick = viewModel::login,
-                    enabled = !state.isLoading && !state.isGoogleLoading,
+                    enabled = !state.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),

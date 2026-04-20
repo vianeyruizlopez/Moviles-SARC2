@@ -1,15 +1,13 @@
 package com.williamsel.sarc.core.session
 
 import android.content.Context
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SessionManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val firebaseAuth: FirebaseAuth
+    @ApplicationContext private val context: Context
 ) {
     private val prefs = context.getSharedPreferences("sarc_session", Context.MODE_PRIVATE)
 
@@ -28,6 +26,5 @@ class SessionManager @Inject constructor(
 
     fun clearSession() {
         prefs.edit().clear().apply()
-        firebaseAuth.signOut()
     }
 }

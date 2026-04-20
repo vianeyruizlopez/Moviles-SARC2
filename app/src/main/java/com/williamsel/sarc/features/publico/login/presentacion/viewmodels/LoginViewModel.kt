@@ -1,12 +1,9 @@
 package com.williamsel.sarc.features.publico.login.presentacion.viewmodels
 
-import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.core.session.SessionManager
-import com.williamsel.sarc.features.publico.login.data.datasource.GoogleAuthUiClient
-import com.williamsel.sarc.features.publico.login.data.datasource.GoogleSignInResult
-import com.williamsel.sarc.features.publico.login.domain.usecases.LoginConGoogleUseCase
+import com.williamsel.sarc.features.perfil.domain.usecases.SyncPerfilUseCase // <-- Importante
 import com.williamsel.sarc.features.publico.login.domain.usecases.LoginUseCase
 import com.williamsel.sarc.features.publico.login.domain.usecases.RestaurarSesionUseCase
 import com.williamsel.sarc.features.publico.login.presentacion.screens.LoginUiState
@@ -21,9 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val loginConGoogleUseCase: LoginConGoogleUseCase,
     private val restaurarSesionUseCase: RestaurarSesionUseCase,
-    private val googleAuthUiClient: GoogleAuthUiClient,
+    private val syncPerfilUseCase: SyncPerfilUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -37,10 +33,10 @@ class LoginViewModel @Inject constructor(
     private fun verificarSesionActiva() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
             val resultado = restaurarSesionUseCase()
 
             if (resultado != null) {
+                // Si ya había sesión, solo navegamos (los datos ya deberían estar en Room)
                 guardarSesionYNavegar(resultado.token, resultado.rol, resultado.id)
             } else {
                 _uiState.update { it.copy(isLoading = false, sessionChecked = true) }
@@ -48,13 +44,8 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onCorreoChange(value: String) {
-        _uiState.update { it.copy(correo = value, errorMessage = null) }
-    }
-
-    fun onContrasenaChange(value: String) {
-        _uiState.update { it.copy(contrasena = value, errorMessage = null) }
-    }
+    fun onCorreoChange(value: String) = _uiState.update { it.copy(correo = value, errorMessage = null) }
+    fun onContrasenaChange(value: String) = _uiState.update { it.copy(contrasena = value, errorMessage = null) }
 
     fun login() {
         val correo = _uiState.value.correo.trim()
@@ -67,58 +58,21 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val resultado = loginUseCase(correo, contrasena)
-            if (resultado != null) {
-                guardarSesionYNavegar(resultado.token, resultado.rol, resultado.id)
-            } else {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Correo o contraseña incorrectos")
-                }
-            }
-        }
-    }
 
-    fun iniciarLoginConGoogle(onIntentReady: (intent: android.content.IntentSender?) -> Unit) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isGoogleLoading = true, errorMessage = null) }
-            val request = googleAuthUiClient.beginSignIn()
-            onIntentReady(request?.intentSender)
-            if (request == null) {
-                _uiState.update {
-                    it.copy(
-                        isGoogleLoading = false,
-                        errorMessage = "No se encontraron cuentas de Google en el dispositivo"
-                    )
-                }
-            }
-        }
-    }
-    fun onGoogleSignInResult(intent: Intent?) {
-        if (intent == null) {
-            _uiState.update {
-                it.copy(isGoogleLoading = false, errorMessage = "Inicio de sesión cancelado")
-            }
-            return
-        }
+            val loginResult = loginUseCase(correo, contrasena)
 
-        viewModelScope.launch {
-            when (val result = googleAuthUiClient.signInWithIntent(intent)) {
-                is GoogleSignInResult.Success -> {
-                    val loginResult = loginConGoogleUseCase(result.idToken)
-                    if (loginResult != null) {
-                        guardarSesionYNavegar(loginResult.token, loginResult.rol, loginResult.id)
-                    } else {
-                        _uiState.update {
-                            it.copy(
-                                isGoogleLoading = false,
-                                errorMessage = "Error al validar sesión en el servidor"
-                            )
-                        }
-                    }
-                }
-                is GoogleSignInResult.Error -> {
+            // Dentro de la función login() en LoginViewModel.kt
+            if (loginResult != null) {
+                sessionManager.saveSession(loginResult.token, loginResult.rol, loginResult.id)
+
+                // CORRECCIÓN: Pasar el id que viene del login
+                val syncExitoso = syncPerfilUseCase(loginResult.id)
+
+                if (syncExitoso) {
+                    guardarSesionYNavegar(loginResult.token, loginResult.rol, loginResult.id)
+                } else {
                     _uiState.update {
-                        it.copy(isGoogleLoading = false, errorMessage = result.mensaje)
+                        it.copy(isLoading = false, errorMessage = "Error al sincronizar datos locales")
                     }
                 }
             }
@@ -126,11 +80,9 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun guardarSesionYNavegar(token: String, rol: String, idUsuario: Int) {
-        sessionManager.saveSession(token = token, rol = rol, idUsuario = idUsuario)
         _uiState.update {
             it.copy(
                 isLoading = false,
-                isGoogleLoading = false,
                 isSuccess = true,
                 rol = rol,
                 sessionChecked = true
