@@ -19,13 +19,22 @@ fun LoginDto.toDomain(): Login {
 
 ///rooms
 fun Login.toEntity(correoInput: String): UsuarioEntity {
+
+    val idRolFinal = when (this.rol) {
+        "Administrador" -> 1
+        "SuperAdministrador" -> 3
+        else -> 2
+    }
+
     return UsuarioEntity(
         idUsuario = this.id,
         nombre = this.nombre ?: "Usuario",
-        primerApellido = "Identificado",
-        segundoApellido = null,
+        primerApellido = "Apellido",
+        segundoApellido = "",
         email = correoInput,
+        contrasena = null,
+        googleId = null,
         edad = null,
-        idRol = if (this.rol == "Administrador") 2 else 3
+        idRol = idRolFinal
     )
 }

@@ -20,7 +20,7 @@ fun PerfilDto.toEntity(): UsuarioEntity {
         idUsuario = this.id,
         nombre = this.nombre,
         primerApellido = this.primerApellido,
-        segundoApellido = this.segundoApellido,
+        segundoApellido = this.segundoApellido ?: "",
         email = this.email,
         edad = this.edad,
         idRol = this.idRol

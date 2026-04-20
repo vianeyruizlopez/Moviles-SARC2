@@ -1,9 +1,8 @@
 package com.williamsel.sarc.features.publico.login.di
 
-import com.google.firebase.auth.FirebaseAuth
+import com.williamsel.sarc.features.publico.login.data.datasource.api.LoginApi
 import com.williamsel.sarc.features.publico.login.data.repositories.LoginRepositoryImpl
 import com.williamsel.sarc.features.publico.login.domain.repositories.LoginRepository
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,27 +12,17 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object FirebaseModule {
+object LoginModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
-}
+    fun provideLoginApi(retrofit: Retrofit): LoginApi {
+        return retrofit.create(LoginApi::class.java)
+    }
 
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class LoginModule {
-
-    @Binds
+    @Provides
     @Singleton
-    abstract fun bindLoginRepository(
-        impl: LoginRepositoryImpl
-    ): LoginRepository
-
-    companion object {
-        @Provides
-        @Singleton
-        fun provideLoginApi(retrofit: Retrofit): com.williamsel.sarc.features.publico.login.data.datasource.api.LoginApi =
-            retrofit.create(com.williamsel.sarc.features.publico.login.data.datasource.api.LoginApi::class.java)
+    fun provideLoginRepository(repository: LoginRepositoryImpl): LoginRepository {
+        return repository
     }
 }

@@ -22,7 +22,7 @@ class SessionManager @Inject constructor(
     fun getToken(): String? = prefs.getString("jwt", null)
     fun getRol(): String?   = prefs.getString("rol", null)
     fun getUserId(): Int    = prefs.getInt("id_usuario", -1)
-    fun isLoggedIn(): Boolean = getToken() != null && getUserId() != -1
+    fun isLoggedIn(): Boolean = getToken() != null
 
     fun clearSession() {
         prefs.edit().clear().apply()

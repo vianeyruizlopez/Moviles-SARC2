@@ -2,20 +2,11 @@ package com.williamsel.sarc.core.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "usuario",
-    foreignKeys = [
-        ForeignKey(
-            entity = RolEntity::class,
-            parentColumns = ["id_rol"],
-            childColumns = ["id_rol"],
-            onDelete = ForeignKey.SET_NULL // Si borran el rol, el usuario no se borra, solo queda en null
-        )
-    ],
     indices = [
         Index(value = ["email"], unique = true),
         Index("id_rol")
@@ -33,10 +24,16 @@ data class UsuarioEntity(
     val primerApellido: String,
 
     @ColumnInfo(name = "segundo_apellido")
-    val segundoApellido: String?,
+    val segundoApellido: String,
 
     @ColumnInfo(name = "email")
     val email: String,
+
+    @ColumnInfo(name = "contrasena")
+    val contrasena: String? = null,
+
+    @ColumnInfo(name = "google_id")
+    val googleId: String? = null,
 
     @ColumnInfo(name = "edad")
     val edad: Int? = null,

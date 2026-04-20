@@ -20,9 +20,9 @@ class CrearUsuarioRepositoryImpl @Inject constructor(
 
     override suspend fun crearAdministrador(nuevo: NuevoAdministrador): Result<Int> {
         return try {
-            // 1. Guardar en Room primero (offline-first)
+            //Guardar en rooms
             usuarioDao.insert(nuevo.toEntity())
-            // 2. Enviar a la API
+            //guarda en la API
             val response = api.crearAdministrador(nuevo.toRequest())
             Result.success(response.idUsuario ?: 0)
         } catch (e: Exception) {
@@ -30,7 +30,6 @@ class CrearUsuarioRepositoryImpl @Inject constructor(
         }
     }
 
-    // Flow reactivo desde Room — idRol == 2 filtra solo administradores
     override fun getAdministradores(): Flow<List<Administrador>> =
         usuarioDao.getAll().map { entities ->
             entities
@@ -39,7 +38,6 @@ class CrearUsuarioRepositoryImpl @Inject constructor(
         }
 
     override suspend fun toggleActivo(idUsuario: Int, activo: Boolean): Result<Unit> {
-        // toggleActivo was removed from the API — no-op
         return Result.failure(UnsupportedOperationException("toggleActivo is no longer supported by the API"))
     }
 

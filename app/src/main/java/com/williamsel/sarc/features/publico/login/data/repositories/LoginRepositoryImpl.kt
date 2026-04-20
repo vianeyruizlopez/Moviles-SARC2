@@ -11,6 +11,8 @@ import com.williamsel.sarc.features.publico.login.domain.repositories.LoginRepos
 import javax.inject.Inject
 
 
+import android.util.Log
+
 class LoginRepositoryImpl @Inject constructor(
     private val api: LoginApi,
     private val usuarioDao: UsuarioDao,
@@ -19,13 +21,23 @@ class LoginRepositoryImpl @Inject constructor(
 
     override suspend fun login(correo: String, contrasena: String): Login? {
         return try {
-            // api
-            val response = api.login(LoginRequestDto(correo, contrasena))
+            Log.d("SARC_DEBUG", "Iniciando login para: $correo")
+
+            val response = api.login(LoginRequestDto(email = correo, contrasena = contrasena))
+            Log.d("SARC_DEBUG", "Respuesta recibida: ${response.token.take(10)}...")
+
             val domain = response.toDomain().copy(correo = correo)
-            //local rooms
-            usuarioDao.insert(domain.toEntity(correo))
+            
+            try {
+                usuarioDao.insert(domain.toEntity(correo))
+                Log.d("SARC_DEBUG", "Usuario guardado en Room exitosamente")
+            } catch (dbError: Exception) {
+                Log.e("SARC_DEBUG", "Error al guardar en Room (No bloqueante): ${dbError.message}")
+            }
+            
             domain
         } catch (e: Exception) {
+            Log.e("SARC_DEBUG", "ERROR EN LOGIN: ${e.message}")
             null
         }
     }
@@ -36,15 +48,15 @@ class LoginRepositoryImpl @Inject constructor(
             val token = sessionManager.getToken() ?: ""
             val rol = sessionManager.getRol() ?: ""
 
-            return usuarioDao.getById(id)?.let { localUser ->
-                Login(
-                    id = id,
-                    token = token,
-                    rol = rol,
-                    correo = localUser.email,
-                    nombre = localUser.nombre
-                )
-            }
+            val localUser = usuarioDao.getById(id)
+            
+            return Login(
+                id = id,
+                token = token,
+                rol = rol,
+                correo = localUser?.email ?: "",
+                nombre = localUser?.nombre ?: "Usuario"
+            )
         }
         return null
     }

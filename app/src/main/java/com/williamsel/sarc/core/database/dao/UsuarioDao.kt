@@ -22,6 +22,9 @@ interface UsuarioDao {
     @Update
     suspend fun update(usuario: UsuarioEntity)
 
+    @Query("DELETE FROM usuario WHERE id_usuario = :id")
+    suspend fun deleteById(id: Int)
+
     @Query("DELETE FROM usuario")
     suspend fun deleteAll()
 }

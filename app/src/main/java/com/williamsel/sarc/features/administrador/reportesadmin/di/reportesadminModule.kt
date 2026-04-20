@@ -23,8 +23,9 @@ object ReportesAdminModule {
     @Provides
     @Singleton
     fun provideReportesAdminRepository(
-        api: ReportesAdminApi
+        api: ReportesAdminApi,
+        dao: com.williamsel.sarc.core.database.dao.ReporteDao
     ): ReportesAdminRepository {
-        return ReportesAdminRepositoryImpl(api)
+        return ReportesAdminRepositoryImpl(api, dao)
     }
 }

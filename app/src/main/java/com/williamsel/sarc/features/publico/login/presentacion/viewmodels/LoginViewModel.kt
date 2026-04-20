@@ -3,7 +3,7 @@ package com.williamsel.sarc.features.publico.login.presentacion.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.core.session.SessionManager
-import com.williamsel.sarc.features.perfil.domain.usecases.SyncPerfilUseCase // <-- Importante
+import com.williamsel.sarc.features.perfil.domain.usecase.SyncPerfilUseCase
 import com.williamsel.sarc.features.publico.login.domain.usecases.LoginUseCase
 import com.williamsel.sarc.features.publico.login.domain.usecases.RestaurarSesionUseCase
 import com.williamsel.sarc.features.publico.login.presentacion.screens.LoginUiState
@@ -36,7 +36,6 @@ class LoginViewModel @Inject constructor(
             val resultado = restaurarSesionUseCase()
 
             if (resultado != null) {
-                // Si ya había sesión, solo navegamos (los datos ya deberían estar en Room)
                 guardarSesionYNavegar(resultado.token, resultado.rol, resultado.id)
             } else {
                 _uiState.update { it.copy(isLoading = false, sessionChecked = true) }
@@ -61,30 +60,44 @@ class LoginViewModel @Inject constructor(
 
             val loginResult = loginUseCase(correo, contrasena)
 
-            // Dentro de la función login() en LoginViewModel.kt
             if (loginResult != null) {
-                sessionManager.saveSession(loginResult.token, loginResult.rol, loginResult.id)
+                println("DEBUG_SARC: Login exitoso para ${loginResult.correo}")
 
-                // CORRECCIÓN: Pasar el id que viene del login
-                val syncExitoso = syncPerfilUseCase(loginResult.id)
 
-                if (syncExitoso) {
-                    guardarSesionYNavegar(loginResult.token, loginResult.rol, loginResult.id)
-                } else {
-                    _uiState.update {
-                        it.copy(isLoading = false, errorMessage = "Error al sincronizar datos locales")
+                launch {
+                    try { 
+                        println("DEBUG_SARC: Iniciando sincronización de perfil...")
+                        syncPerfilUseCase(loginResult.id) 
+                        println("DEBUG_SARC: Sincronización terminada")
+                    } catch (e: Exception) { 
+                        println("DEBUG_SARC: Error en sincronización: ${e.message}")
                     }
+                }
+
+                guardarSesionYNavegar(loginResult.token, loginResult.rol, loginResult.id)
+            } else {
+                println("DEBUG_SARC: Login fallido (null result)")
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Correo o contraseña incorrectos")
                 }
             }
         }
     }
 
     private fun guardarSesionYNavegar(token: String, rol: String, idUsuario: Int) {
+        val rolNormalizado = when (rol.uppercase()) {
+            "3", "SUPERADMINISTRADOR", "SUPERADMIN" -> "SuperAdministrador"
+            "1", "ADMINISTRADOR", "ADMIN" -> "Administrador"
+            else -> "Ciudadano"
+        }
+
+        sessionManager.saveSession(token, rolNormalizado, idUsuario)
+
         _uiState.update {
             it.copy(
                 isLoading = false,
                 isSuccess = true,
-                rol = rol,
+                rol = rolNormalizado,
                 sessionChecked = true
             )
         }

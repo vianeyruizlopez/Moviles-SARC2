@@ -35,7 +35,7 @@ object NetworkModule {
     @Singleton
     fun provideSarcApi(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://32.195.90.19:8080/")
+            .baseUrl("http://54.162.46.202:8080/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

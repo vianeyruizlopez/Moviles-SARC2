@@ -12,7 +12,13 @@ fun GuardedRoute(
     navController: NavHostController,
     content: @Composable () -> Unit
 ) {
-    val rolActual = sessionManager.getRol()
+    val rolCrudo = sessionManager.getRol() ?: ""
+    
+    val rolActual = when (rolCrudo.uppercase()) {
+        "1", "ADMINISTRADOR", "ADMIN" -> "Administrador"
+        "3", "SUPERADMINISTRADOR", "SUPERADMIN" -> "SuperAdministrador"
+        else -> "Ciudadano"
+    }
 
     if (!sessionManager.isLoggedIn()) {
         LaunchedEffect(Unit) {
@@ -25,14 +31,15 @@ fun GuardedRoute(
 
     if (rolActual != requiredRol) {
         LaunchedEffect(Unit) {
-            val destino: Any = if (rolActual == "Administrador")
-                Routes.Admin.Panel
-            else if (rolActual == "SuperAdministrador")
-                Routes.SuperAdmin.Panel
-            else
-                Routes.Ciudadano.Panel
-                
-            navController.navigate(destino) { popUpTo(0) { inclusive = true } }
+            val destino: Any = when (rolActual) {
+                "Administrador" -> Routes.Admin.Panel
+                "SuperAdministrador" -> Routes.SuperAdmin.Panel
+                else -> Routes.Ciudadano.Panel
+            }
+            
+            navController.navigate(destino) {
+                popUpTo(0) { inclusive = true }
+            }
         }
         return
     }

@@ -22,7 +22,7 @@ fun AdministradorDto.toDomain(): Administrador = Administrador(
     activo         = activo
 )
 
-// Room Entity → Domain (fallback sin red)
+// Room
 fun UsuarioEntity.toAdminDomain(): Administrador = Administrador(
     idUsuario      = idUsuario,
     nombreCompleto = "$nombre $primerApellido $segundoApellido".trim(),
@@ -31,10 +31,11 @@ fun UsuarioEntity.toAdminDomain(): Administrador = Administrador(
 )
 
 fun NuevoAdministrador.toEntity(): UsuarioEntity = UsuarioEntity(
+    idUsuario       = 0,
     nombre          = nombre,
     primerApellido  = primerApellido,
     segundoApellido = segundoApellido,
     email           = email,
-    contrasena      = contrasena,
+    edad            = null,
     idRol           = 2
 )
