@@ -208,7 +208,10 @@ fun NavGraph(
                 navController  = navController
             ) {
                 ReportesAdminScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onVerDetalle = { id -> 
+                        navController.navigate(Routes.Admin.DetalleReporteAdmin(id = id))
+                    }
                 )
             }
         }

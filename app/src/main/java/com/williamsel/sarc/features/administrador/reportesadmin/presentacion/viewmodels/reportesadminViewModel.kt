@@ -1,10 +1,11 @@
 package com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.entities.ReporteAdmin
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.usecases.GetReportesAdminUseCase
+import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.EstadoFiltro
+import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReporteAdminUiModel
 import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReportesAdminUiState
 import com.williamsel.sarc.ui.theme.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,25 +21,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
-enum class EstadoFiltro(val label: String, val id: Int?) {
-    TODOS("Todos", null),
-    PENDIENTES("Pendientes", 1),
-    EN_PROCESO("En Proceso", 2),
-    RESUELTOS("Resueltos", 3)
-}
-
-data class ReporteAdminUiModel(
-    val idReporte: Int,
-    val titulo: String,
-    val descripcion: String,
-    val nombreEstado: String,
-    val estadoColor: Color,
-    val nombreIncidencia: String,
-    val nombreUsuario: String,
-    val ubicacion: String?,
-    val fechaFormateada: String
-)
-
 @HiltViewModel
 class ReportesAdminViewModel @Inject constructor(
     private val getReportesAdminUseCase: GetReportesAdminUseCase
@@ -52,25 +34,22 @@ class ReportesAdminViewModel @Inject constructor(
     init {
         cargarReportes()
     }
-
-    fun cargarReportes(filtro: EstadoFiltro = _uiState.value.estadoSeleccionado, query: String = _uiState.value.searchQuery) {
+    fun cargarReportes(
+        filtro: EstadoFiltro = _uiState.value.estadoSeleccionado, 
+        query: String = _uiState.value.searchQuery
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, estadoSeleccionado = filtro, searchQuery = query) }
-            try {
-                val reportes = getReportesAdminUseCase(filtro.id, if (query.isEmpty()) null else query)
-                val uiModels = reportes.map { reporte -> reporte.toUiModel() }
+            
+            val result = getReportesAdminUseCase(filtro.id, if (query.isEmpty()) null else query)
+
+            result.onSuccess { reportes ->
+                val uiModels = reportes.map { it.toUiModel() }
                 _uiState.update { it.copy(isLoading = false, reportes = uiModels) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al cargar reportes") }
+            }.onFailure { error ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = "No se pudieron cargar los reportes") }
             }
         }
-    }
-
-    fun getEstadoColor(filtro: EstadoFiltro): Color = when (filtro) {
-        EstadoFiltro.TODOS -> SarcGreen
-        EstadoFiltro.PENDIENTES -> OrangeWarning
-        EstadoFiltro.EN_PROCESO -> BlueProceso
-        EstadoFiltro.RESUELTOS -> GreenResuelto
     }
 
     private fun ReporteAdmin.toUiModel() = ReporteAdminUiModel(
@@ -78,6 +57,7 @@ class ReportesAdminViewModel @Inject constructor(
         titulo = this.titulo,
         descripcion = this.descripcion,
         nombreEstado = this.nombreEstado,
+        idEstado = this.idEstado,
         estadoColor = when (this.idEstado) {
             1 -> OrangeWarning
             2 -> BlueProceso
@@ -86,14 +66,18 @@ class ReportesAdminViewModel @Inject constructor(
         },
         nombreIncidencia = this.nombreIncidencia,
         nombreUsuario = this.nombreUsuario,
-        ubicacion = this.ubicacion,
-        fechaFormateada = formatFecha(this.fecha)
+        ubicacion = this.ubicacion ?: "Sin ubicación",
+        fechaFormateada = formatFecha(this.fecha),
+        imagen = this.imagen
     )
 
     private fun formatFecha(fecha: String): String = try {
-        val dt = LocalDateTime.parse(fecha, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        dt.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale("es", "MX")))
-    } catch (e: Exception) { fecha }
+        val inputFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        val dt = LocalDateTime.parse(fecha, inputFormatter)
+        dt.format(DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es", "MX")))
+    } catch (e: Exception) { 
+        fecha
+    }
 
     fun onSearchQueryChanged(newQuery: String) {
         _uiState.update { it.copy(searchQuery = newQuery) }

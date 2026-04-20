@@ -1,8 +1,6 @@
 package com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,103 +13,109 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels.EstadoFiltro
-import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels.ReporteAdminUiModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.viewmodels.ReportesAdminViewModel
 import com.williamsel.sarc.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportesAdminScreen(
     onNavigateBack: () -> Unit,
+    onVerDetalle: (Int) -> Unit,
     viewModel: ReportesAdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Todos los Reportes",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = SurfaceWhite
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = SurfaceWhite
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SarcGreen
-                )
-            )
-        },
-        containerColor = BackgroundLight
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SarcGreen)
+    ) {
+        ReportesAdminTopBar(onBack = onNavigateBack)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .background(
+                    color = SurfaceWhite,
+                    shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
+                )
         ) {
-            SearchBarSection(
-                query = uiState.searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChanged(it) }
+            OutlinedTextField(
+                value = uiState.searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
+                placeholder = { Text("Buscar reportes...", color = TextLight) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = TextLight
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = SarcGreen,
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedTextColor = TextDark,
+                    unfocusedTextColor = TextDark,
+                    cursorColor = SarcGreen,
+                    focusedContainerColor = SurfaceWhite,
+                    unfocusedContainerColor = SurfaceWhite
+                )
             )
 
-            FilterTabsSection(
+            FiltrosRow(
                 estadoSeleccionado = uiState.estadoSeleccionado,
-                onFiltroChange = { viewModel.onEstadoFilterChanged(it) },
-                viewModel = viewModel
+                onFiltroChange = { viewModel.onEstadoFilterChanged(it) }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "${uiState.reportes.size} reportes encontrados",
+                fontSize = 13.sp,
+                color = TextMid,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
             if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = SarcGreen)
                 }
-            } else if (uiState.errorMessage != null) {
-                ErrorContent(
-                    message = uiState.errorMessage!!,
-                    onRetry = { viewModel.cargarReportes() }
-                )
+            } else if (uiState.reportes.isEmpty()) {
+                EstadoVacio()
             } else {
-                Text(
-                    text = "${uiState.reportes.size} reportes encontrados",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    fontSize = 13.sp,
-                    color = TextMid,
-                    fontWeight = FontWeight.Medium
-                )
-
-                if (uiState.reportes.isEmpty()) {
-                    EmptyContent()
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp, 0.dp, 16.dp, 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(items = uiState.reportes, key = { it.idReporte }) { reporte ->
-                            ReporteCard(reporte = reporte)
-                        }
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        items = uiState.reportes,
+                        key = { it.idReporte }
+                    ) { reporte ->
+                        ReporteAdminCard(
+                            reporte = reporte,
+                            onVerDetalle = onVerDetalle
+                        )
                     }
                 }
             }
@@ -120,111 +124,274 @@ fun ReportesAdminScreen(
 }
 
 @Composable
-private fun SearchBarSection(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth().padding(16.dp, 10.dp),
-        placeholder = { Text("Buscar reportes...", color = TextLight) },
-        leadingIcon = { Icon(Icons.Default.Search, null, tint = TextLight) },
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = SurfaceWhite,
-            unfocusedContainerColor = SurfaceWhite,
-            focusedBorderColor = SarcGreen,
-            unfocusedBorderColor = Color.Transparent
-        ),
-        singleLine = true
-    )
+private fun ReportesAdminTopBar(onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Volver",
+                tint = SurfaceWhite
+            )
+        }
+        Text(
+            text = "Todos los Reportes",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = SurfaceWhite
+        )
+    }
 }
 
 @Composable
-private fun FilterTabsSection(
+private fun FiltrosRow(
     estadoSeleccionado: EstadoFiltro,
-    onFiltroChange: (EstadoFiltro) -> Unit,
-    viewModel: ReportesAdminViewModel
+    onFiltroChange: (EstadoFiltro) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         EstadoFiltro.entries.forEach { filtro ->
-            val isSelected = filtro == estadoSeleccionado
-            val bgColor by animateColorAsState(if (isSelected) viewModel.getEstadoColor(filtro) else SurfaceWhite, label = "")
-            val textColor by animateColorAsState(if (isSelected) SurfaceWhite else TextMid, label = "")
+            val activo = filtro == estadoSeleccionado
+            val colorFondo = if (activo) {
+                when (filtro) {
+                    EstadoFiltro.PENDIENTES -> OrangeWarning
+                    EstadoFiltro.EN_PROCESO -> BlueProceso
+                    EstadoFiltro.RESUELTOS -> GreenResuelto
+                    else -> SarcGreen
+                }
+            } else Color(0xFFF0F0F0)
+            
+            val colorTexto = if (activo) SurfaceWhite else TextMid
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(bgColor)
-                    .border(1.dp, if (isSelected) Color.Transparent else FieldBackground, RoundedCornerShape(20.dp))
-                    .clickable { onFiltroChange(filtro) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            ) {
-                Text(filtro.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textColor)
-            }
+            FilterChip(
+                selected = activo,
+                onClick = { onFiltroChange(filtro) },
+                label = {
+                    Text(
+                        text = filtro.label,
+                        fontSize = 12.sp,
+                        color = colorTexto
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = colorFondo,
+                    containerColor = Color(0xFFF0F0F0),
+                    selectedLabelColor = SurfaceWhite,
+                    labelColor = TextMid
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = activo,
+                    borderColor = Color.Transparent,
+                    selectedBorderColor = Color.Transparent
+                )
+            )
         }
     }
 }
 
 @Composable
-private fun ReporteCard(reporte: ReporteAdminUiModel) {
+private fun ReporteAdminCard(
+    reporte: ReporteAdminUiModel,
+    onVerDetalle: (Int) -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite)
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onVerDetalle(reporte.idReporte) }
     ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(modifier = Modifier.width(5.dp).fillMaxHeight().background(reporte.estadoColor))
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(reporte.titulo, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    EstadoBadge(reporte.nombreEstado, reporte.estadoColor)
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!reporte.imagen.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(reporte.imagen)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Imagen del reporte",
+                        modifier = Modifier
+                            .size(65.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
-                Text(reporte.descripcion, fontSize = 13.sp, color = TextMid, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    InfoChip(Icons.Default.Category, reporte.nombreIncidencia)
-                    InfoChip(Icons.Default.Person, reporte.nombreUsuario)
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = reporte.titulo,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextDark,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        EstadoBadgeAdmin(nombre = reporte.nombreEstado, color = reporte.estadoColor)
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = reporte.descripcion,
+                        fontSize = 12.sp,
+                        color = TextMid,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-                if (!reporte.ubicacion.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    InfoChip(Icons.Default.LocationOn, reporte.ubicacion)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = Color(0xFFF0F0F0))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MetaItemAdmin(
+                    icon = Icons.Default.Category,
+                    texto = reporte.nombreIncidencia,
+                    modifier = Modifier.weight(1f)
+                )
+                MetaItemAdmin(
+                    icon = Icons.Default.Person,
+                    texto = reporte.nombreUsuario,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = TextLight,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = reporte.ubicacion,
+                        fontSize = 11.sp,
+                        color = TextMid,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                InfoChip(Icons.Default.CalendarToday, reporte.fechaFormateada, color = TextLight)
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = TextLight,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = reporte.fechaFormateada,
+                        fontSize = 11.sp,
+                        color = TextLight
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun EstadoBadge(nombre: String, color: Color) {
-    Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(color).padding(6.dp, 2.dp)) {
-        Text(nombre, color = SurfaceWhite, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+private fun EstadoBadgeAdmin(nombre: String, color: Color) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = color
+    ) {
+        Text(
+            text = nombre,
+            fontSize = 10.sp,
+            color = SurfaceWhite,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
     }
 }
 
 @Composable
-private fun InfoChip(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, color: Color = TextMid) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+private fun MetaItemAdmin(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    texto: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = TextLight,
+            modifier = Modifier.size(13.dp)
+        )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontSize = 11.sp, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            text = texto,
+            fontSize = 11.sp,
+            color = TextMid,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
 @Composable
-private fun ErrorContent(message: String, onRetry: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(message, color = ErrorRed)
-        Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(containerColor = SarcGreen)) { Text("Reintentar") }
-    }
-}
-
-@Composable
-private fun EmptyContent() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("No hay reportes que coincidan", color = TextLight)
+private fun EstadoVacio() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.SearchOff,
+                contentDescription = null,
+                tint = Color(0xFFBDBDBD),
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No se encontraron reportes",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextMid
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Intenta con otros filtros o términos",
+                fontSize = 13.sp,
+                color = TextLight
+            )
+        }
     }
 }
