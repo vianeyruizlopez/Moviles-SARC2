@@ -1,11 +1,11 @@
-package com.williamsel.sarc.features.administrador.paneladmin.presentacion.viewmodels
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.ResumenReportes
-import com.williamsel.sarc.features.administrador.paneladmin.domain.usecases.GetResumenReportesUseCase
-import com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens.PanelPrincipalAdminUIState
-import com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens.PanelPrincipalUIModel
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.entities.ResumenReportes
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.usecases.GetResumenReportesUseCase
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.screens.PanelPrincipalAdminUIState
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.screens.PanelPrincipalUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

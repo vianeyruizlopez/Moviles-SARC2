@@ -1,6 +1,6 @@
 package com.williamsel.sarc.features.administrador.paneldeadmin.data.datasource.api
 
-import com.williamsel.sarc.features.administrador.paneladmin.data.models.ResumenReportesDto
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.data.models.ResumenReportesDto
 import com.williamsel.sarc.features.administrador.paneldeadmin.data.models.PanelReporteDto
 import retrofit2.Response
 import retrofit2.http.*

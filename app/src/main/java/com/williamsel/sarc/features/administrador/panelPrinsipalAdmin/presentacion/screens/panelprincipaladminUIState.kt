@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.screens
 
 data class PanelPrincipalUIModel(
     val totalReportes: String,

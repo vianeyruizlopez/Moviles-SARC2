@@ -1,8 +1,8 @@
-package com.williamsel.sarc.features.administrador.paneladmin.di
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.di
 
-import com.williamsel.sarc.features.administrador.paneladmin.data.datasource.api.PanelPrincipalAdminApi
-import com.williamsel.sarc.features.administrador.paneladmin.data.repositories.PanelPrincipalAdminImpl
-import com.williamsel.sarc.features.administrador.paneladmin.domain.repositories.PanelPrincipalAdminRepository
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.data.datasource.api.PanelPrincipalAdminApi
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.data.repositories.PanelPrincipalAdminImpl
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.repositories.PanelPrincipalAdminRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

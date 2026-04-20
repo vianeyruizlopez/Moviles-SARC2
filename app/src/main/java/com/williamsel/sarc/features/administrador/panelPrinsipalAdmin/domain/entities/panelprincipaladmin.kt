@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.administrador.paneladmin.domain.entities
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.entities
 
 data class Reporte(
     val id: Int,

@@ -27,7 +27,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import com.williamsel.sarc.features.administrador.paneldeadmin.domain.entities.PanelReporte
 import com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.viewmodels.PanelDeAdminViewModel
 import com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.viewmodels.VistaPanel
 import com.williamsel.sarc.ui.theme.*
@@ -40,12 +39,10 @@ fun PanelDeAdminScreen(
     viewModel: PanelDeAdminViewModel = hiltViewModel()
 ) {
     val uiState           by viewModel.uiState.collectAsState()
-    val resumen           by viewModel.resumen.collectAsState()
     val vistaActiva       by viewModel.vistaActiva.collectAsState()
     val categoriaSeleccionada by viewModel.categoriaSeleccionada.collectAsState()
     val estadoSeleccionado    by viewModel.estadoSeleccionado.collectAsState()
     val searchQuery       by viewModel.searchQuery.collectAsState()
-    val filteredReportes  by viewModel.filteredReportes.collectAsState()
 
     var isSearchExpanded by remember { mutableStateOf(false) }
 
@@ -75,7 +72,6 @@ fun PanelDeAdminScreen(
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             
-            // ── Buscador ──
             AnimatedVisibility(visible = isSearchExpanded) {
                 Box(modifier = Modifier.fillMaxWidth().background(SarcGreen).padding(horizontal = 16.dp, vertical = 8.dp)) {
                     OutlinedTextField(
@@ -90,65 +86,41 @@ fun PanelDeAdminScreen(
                 }
             }
 
-            // ── Estadísticas GRANDES ──
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                StatCardLarge(label = "Total", value = resumen.total, color = SarcGreen, modifier = Modifier.weight(1f))
-                StatCardLarge(label = "Pend", value = resumen.pendientes, color = OrangeWarning, modifier = Modifier.weight(1f))
-                StatCardLarge(label = "Proc", value = resumen.enProceso, color = BlueProceso, modifier = Modifier.weight(1f))
-                StatCardLarge(label = "Res", value = resumen.resueltos, color = GreenResuelto, modifier = Modifier.weight(1f))
-            }
-
-            // ── Selectores (Vista y Estado) ──
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                VistaToggleAnterior(vistaActiva = vistaActiva, onCambiarVista = { viewModel.cambiarVista(it) }, modifier = Modifier.weight(1f))
-            }
-
-            // ── Filtros (Categoría y Estado) ──
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = "Categoría", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextLight, modifier = Modifier.padding(bottom = 4.dp))
-                FilterDropdownAnterior(
-                    seleccionado = categoriaSeleccionada,
-                    opciones = viewModel.categorias,
-                    onSeleccionar = { viewModel.cambiarCategoria(it) }
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(text = "Estado", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextLight, modifier = Modifier.padding(bottom = 4.dp))
-                FilterDropdownAnterior(
-                    seleccionado = estadoSeleccionado,
-                    opciones = listOf("Todos", "Pendiente", "En Proceso", "Resuelto"),
-                    onSeleccionar = { viewModel.cambiarEstado(it) }
-                )
-            }
-
-            // ── Lista o Mapa ──
             Box(modifier = Modifier.weight(1f)) {
                 when (uiState) {
                     is PanelDeAdminUIState.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator(color = SarcGreen) }
+                    is PanelDeAdminUIState.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text((uiState as PanelDeAdminUIState.Error).mensaje, color = ErrorRed) }
                     is PanelDeAdminUIState.Success -> {
-                        if (vistaActiva == VistaPanel.LISTA) {
-                            LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                items(filteredReportes, key = { it.idReporte }) { reporte ->
-                                    ReporteItemV3(
-                                        reporte = reporte,
-                                        onVerDetalle = { onVerDetalle(reporte.idReporte) },
-                                        onCambiarEstado = { id, estado -> viewModel.actualizarEstadoReporte(id, estado) }
-                                    )
+                        val state = uiState as PanelDeAdminUIState.Success
+                        
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            EstadisticasHeader(state.estadisticas)
+
+                            ControlesPanel(
+                                vistaActiva = vistaActiva,
+                                onCambiarVista = viewModel::cambiarVista,
+                                categoria = categoriaSeleccionada,
+                                estado = estadoSeleccionado,
+                                categorias = viewModel.categorias,
+                                onCambiarCategoria = viewModel::cambiarCategoria,
+                                onCambiarEstado = viewModel::cambiarEstado
+                            )
+
+                            if (vistaActiva == VistaPanel.LISTA) {
+                                LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    items(state.reportes, key = { it.idReporte }) { reporte ->
+                                        ReporteItemV3(
+                                            reporte = reporte,
+                                            onVerDetalle = { onVerDetalle(reporte.idReporte) },
+                                            onCambiarEstado = { id, estado -> viewModel.actualizarEstadoReporte(id, estado) }
+                                        )
+                                    }
                                 }
+                            } else {
+                                MapaReportesContent(reportes = state.reportes)
                             }
-                        } else {
-                            MapaReportesContent(reportes = filteredReportes)
                         }
                     }
-                    else -> {}
                 }
             }
         }
@@ -156,7 +128,49 @@ fun PanelDeAdminScreen(
 }
 
 @Composable
-private fun StatCardLarge(label: String, value: Int, color: Color, modifier: Modifier) {
+private fun EstadisticasHeader(estadisticas: PanelEstadisticasUIModel) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        StatCardLarge(label = "Total", value = estadisticas.total, color = SarcGreen, modifier = Modifier.weight(1f))
+        StatCardLarge(label = "Pend", value = estadisticas.pendientes, color = OrangeWarning, modifier = Modifier.weight(1f))
+        StatCardLarge(label = "Proc", value = estadisticas.enProceso, color = BlueProceso, modifier = Modifier.weight(1f))
+        StatCardLarge(label = "Res", value = estadisticas.resueltos, color = GreenResuelto, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun ControlesPanel(
+    vistaActiva: VistaPanel,
+    onCambiarVista: (VistaPanel) -> Unit,
+    categoria: String,
+    estado: String,
+    categorias: List<String>,
+    onCambiarCategoria: (String) -> Unit,
+    onCambiarEstado: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        VistaToggleAnterior(vistaActiva = vistaActiva, onCambiarVista = onCambiarVista, modifier = Modifier.fillMaxWidth())
+        
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Categoría", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextLight, modifier = Modifier.padding(bottom = 4.dp))
+                FilterDropdownAnterior(seleccionado = categoria, opciones = categorias, onSeleccionar = onCambiarCategoria)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Estado", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextLight, modifier = Modifier.padding(bottom = 4.dp))
+                FilterDropdownAnterior(seleccionado = estado, opciones = listOf("Todos", "Pendiente", "En Proceso", "Resuelto"), onSeleccionar = onCambiarEstado)
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+private fun StatCardLarge(label: String, value: String, color: Color, modifier: Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
@@ -164,7 +178,7 @@ private fun StatCardLarge(label: String, value: Int, color: Color, modifier: Mod
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = value.toString(), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = color)
+            Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = color)
             Text(text = label, fontSize = 12.sp, color = TextLight, fontWeight = FontWeight.Bold)
         }
     }
@@ -174,7 +188,6 @@ private fun StatCardLarge(label: String, value: Int, color: Color, modifier: Mod
 private fun VistaToggleAnterior(vistaActiva: VistaPanel, onCambiarVista: (VistaPanel) -> Unit, modifier: Modifier) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(SurfaceWhite)
             .border(1.dp, FieldBackground, RoundedCornerShape(8.dp))
@@ -186,20 +199,20 @@ private fun VistaToggleAnterior(vistaActiva: VistaPanel, onCambiarVista: (VistaP
                     .weight(1f)
                     .clickable { onCambiarVista(vista) }
                     .background(if (isSelected) SarcGreen else Color.Transparent)
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = if (vista == VistaPanel.LISTA) Icons.Default.List else Icons.Default.Map,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(16.dp),
                         tint = if (isSelected) Color.White else TextMid
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (vista == VistaPanel.LISTA) "Vista de Lista" else "Vista de Mapa",
-                        fontSize = 14.sp,
+                        text = if (vista == VistaPanel.LISTA) "Lista" else "Mapa",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) Color.White else TextMid
                     )
@@ -221,22 +234,22 @@ private fun FilterDropdownAnterior(seleccionado: String, opciones: List<String>,
                 .background(SurfaceWhite)
                 .border(1.dp, FieldBackground, RoundedCornerShape(8.dp))
                 .clickable { expanded = true }
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(seleccionado, fontSize = 15.sp, color = TextDark)
-            Icon(Icons.Default.ArrowDropDown, null, tint = TextLight)
+            Text(seleccionado, fontSize = 14.sp, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(Icons.Default.ArrowDropDown, null, tint = TextLight, modifier = Modifier.size(20.dp))
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.9f).background(SurfaceWhite)
+            modifier = Modifier.fillMaxWidth(0.45f).background(SurfaceWhite)
         ) {
             opciones.forEach { opcion ->
                 DropdownMenuItem(
-                    text = { Text(opcion, fontSize = 15.sp) },
+                    text = { Text(opcion, fontSize = 14.sp) },
                     onClick = { onSeleccionar(opcion); expanded = false }
                 )
             }
@@ -245,8 +258,7 @@ private fun FilterDropdownAnterior(seleccionado: String, opciones: List<String>,
 }
 
 @Composable
-private fun ReporteItemV3(reporte: PanelReporte, onVerDetalle: () -> Unit, onCambiarEstado: (Int, Int) -> Unit) {
-    val color = getEstadoColorById(reporte.idEstado)
+private fun ReporteItemV3(reporte: PanelReporteUIModel, onVerDetalle: () -> Unit, onCambiarEstado: (Int, Int) -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
 
     Card(
@@ -256,11 +268,11 @@ private fun ReporteItemV3(reporte: PanelReporte, onVerDetalle: () -> Unit, onCam
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color))
+            Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(reporte.colorEstado))
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(reporte.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${reporte.nombreIncidencia} • ${reporte.nombreUsuario}", fontSize = 13.sp, color = TextLight)
+                Text(reporte.subtitulo, fontSize = 13.sp, color = TextLight)
             }
             Row {
                 IconButton(onClick = onVerDetalle) {
@@ -282,15 +294,24 @@ private fun ReporteItemV3(reporte: PanelReporte, onVerDetalle: () -> Unit, onCam
 }
 
 @Composable
-private fun MapaReportesContent(reportes: List<PanelReporte>) {
+private fun MapaReportesContent(reportes: List<PanelReporteUIModel>) {
     val cameraPositionState = rememberCameraPositionState { position = CameraPosition.fromLatLngZoom(LatLng(16.6069, -93.1027), 12f) }
     GoogleMap(modifier = Modifier.fillMaxSize().padding(16.dp).clip(RoundedCornerShape(20.dp)), cameraPositionState = cameraPositionState) {
         reportes.forEach { rep ->
             rep.latitud?.let { lat -> rep.longitud?.let { lng ->
-                Marker(state = MarkerState(LatLng(lat, lng)), title = rep.titulo, icon = BitmapDescriptorFactory.defaultMarker(when(rep.idEstado){1->40f; 2->210f; else->120f}))
+                Marker(
+                    state = MarkerState(LatLng(lat, lng)), 
+                    title = rep.titulo, 
+                    icon = BitmapDescriptorFactory.defaultMarker(
+                        when(rep.idEstado) {
+                            1 -> BitmapDescriptorFactory.HUE_ORANGE
+                            2 -> BitmapDescriptorFactory.HUE_AZURE
+                            3 -> BitmapDescriptorFactory.HUE_GREEN
+                            else -> BitmapDescriptorFactory.HUE_RED
+                        }
+                    )
+                )
             }}
         }
     }
 }
-
-private fun getEstadoColorById(id: Int) = when(id){ 1->OrangeWarning; 2->BlueProceso; 3->GreenResuelto; else->TextMid }

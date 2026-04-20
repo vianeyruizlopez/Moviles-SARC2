@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.williamsel.sarc.features.administrador.paneladmin.presentacion.viewmodels.PanelPrincipalAdminViewModel
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.viewmodels.PanelPrincipalAdminViewModel
 import com.williamsel.sarc.ui.theme.*
 
 @Composable

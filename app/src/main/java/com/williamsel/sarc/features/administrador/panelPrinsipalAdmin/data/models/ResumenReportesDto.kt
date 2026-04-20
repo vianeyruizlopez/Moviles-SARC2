@@ -1,4 +1,4 @@
-package com.williamsel.sarc.features.administrador.paneladmin.data.models
+package com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.data.models
 
 import com.google.gson.annotations.SerializedName
 

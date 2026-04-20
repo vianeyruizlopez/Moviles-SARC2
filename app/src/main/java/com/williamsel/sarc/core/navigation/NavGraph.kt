@@ -22,7 +22,7 @@ import com.williamsel.sarc.features.ciudadano.crearreportes.presentacion.screens
 import com.williamsel.sarc.features.ciudadano.misreportesciu.presentacion.screens.MisReportesScreen
 import com.williamsel.sarc.features.ciudadano.detallereporteciu.presentacion.screens.DetallereporteciuScreen
 
-import com.williamsel.sarc.features.administrador.paneladmin.presentacion.screens.PanelPrincipalAdminScreen
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.presentacion.screens.PanelPrincipalAdminScreen
 import com.williamsel.sarc.features.administrador.mapaadmin.presentacion.screens.MapaAdminScreen
 import com.williamsel.sarc.features.administrador.reportesadmin.presentacion.screens.ReportesAdminScreen
 import com.williamsel.sarc.features.administrador.paneldeadmin.presentacion.screens.PanelDeAdminScreen

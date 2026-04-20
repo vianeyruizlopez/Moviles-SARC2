@@ -1,7 +1,7 @@
 package com.williamsel.sarc.features.administrador.paneldeadmin.data.repositories
 
-import com.williamsel.sarc.features.administrador.paneladmin.data.mapper.toDomain as toResumenDomain
-import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.ResumenReportes
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.data.mapper.toDomain as toResumenDomain
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.entities.ResumenReportes
 import com.williamsel.sarc.features.administrador.paneldeadmin.data.datasource.api.PanelDeAdminApi
 import com.williamsel.sarc.features.administrador.paneldeadmin.data.mapper.toDomain as toPanelReporteDomain
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.entities.PanelReporte

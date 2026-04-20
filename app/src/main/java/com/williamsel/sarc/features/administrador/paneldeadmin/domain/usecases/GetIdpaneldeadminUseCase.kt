@@ -1,6 +1,6 @@
 package com.williamsel.sarc.features.administrador.paneldeadmin.domain.usecases
 
-import com.williamsel.sarc.features.administrador.paneladmin.domain.entities.ResumenReportes
+import com.williamsel.sarc.features.administrador.panelPrinsipalAdmin.domain.entities.ResumenReportes
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.entities.PanelReporte
 import com.williamsel.sarc.features.administrador.paneldeadmin.domain.repositories.PanelDeAdminRepository
 import javax.inject.Inject
