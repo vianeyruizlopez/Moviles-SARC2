@@ -10,6 +10,10 @@ import com.williamsel.sarc.features.superadmin.estadisticasglobal.domain.reposit
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
+
 class EstadisticasGlobalRepositoryImpl @Inject constructor(
     private val api: EstadisticasGlobalApi,
     private val reporteDao: ReporteDao,
@@ -25,7 +29,6 @@ class EstadisticasGlobalRepositoryImpl @Inject constructor(
         }
     }
 
-    // ── Fallback: calcula métricas desde Room ─────────────────────────────────
     private suspend fun calcularDesdeRoom(): EstadisticasGlobal {
         val reportes    = reporteDao.getAll().first()
         val usuarios    = usuarioDao.getAll().first()
@@ -35,7 +38,6 @@ class EstadisticasGlobalRepositoryImpl @Inject constructor(
         val ciudadanos  = usuarios.count { it.idRol == 1 }
         val admins      = usuarios.count { it.idRol == 2 }
 
-        // Por categoría
         val porCategoria = categorias.map { cat ->
             val cant = reportes.count { it.idIncidencia == cat.idIncidencia }
             CategoriaStats(
@@ -45,7 +47,6 @@ class EstadisticasGlobalRepositoryImpl @Inject constructor(
             )
         }.filter { it.cantidad > 0 }
 
-        // Por estado: 1=Pendiente, 2=En Proceso, 3=Resuelto
         val estadosMap = mapOf(1 to "Pendiente", 2 to "En Proceso", 3 to "Resuelto")
         val porEstado = estadosMap.map { (idEstado, nombre) ->
             val cant = reportes.count { it.idEstado == idEstado }
@@ -56,21 +57,30 @@ class EstadisticasGlobalRepositoryImpl @Inject constructor(
             )
         }.filter { it.cantidad > 0 }
 
-        // Tendencia últimos 30 días (usando fechaReporte como timestamp)
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val hace30 = System.currentTimeMillis() - 30L * 24 * 3600 * 1000
-        val recientes = reportes.filter { (it.fechaReporte ?: 0L) >= hace30 }
+        
+        val recientes = reportes.filter { r ->
+            val fechaLong = try { 
+                r.fechaReporte?.let { sdf.parse(it)?.time } ?: 0L 
+            } catch (e: Exception) { 0L }
+            fechaLong >= hace30
+        }
+        
         val tendencia = (1..30).map { dia ->
             val inicio = hace30 + (dia - 1) * 24L * 3600 * 1000
             val fin    = inicio + 24L * 3600 * 1000
             TendenciaDia(
                 dia      = dia,
                 cantidad = recientes.count { r ->
-                    val f = r.fechaReporte ?: 0L; f in inicio until fin
+                    val f = try { 
+                        r.fechaReporte?.let { sdf.parse(it)?.time } ?: 0L 
+                    } catch (e: Exception) { 0L }
+                    f in inicio until fin
                 }
             )
         }
 
-        // Distribución por categoría y estado
         val distribucion = categorias.map { cat ->
             DistribucionItem(
                 categoria = cat.nombre,
@@ -80,7 +90,6 @@ class EstadisticasGlobalRepositoryImpl @Inject constructor(
             )
         }.filter { it.pendiente + it.enProceso + it.resuelto > 0 }
 
-        // Tiempo promedio (sin datos reales de resolución, se devuelve 0)
         val tiempos = categorias.map { cat ->
             TiempoCategoria(
                 categoria = cat.nombre,

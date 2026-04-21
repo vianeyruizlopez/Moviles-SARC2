@@ -2,35 +2,11 @@ package com.williamsel.sarc.core.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "reporte",
-    foreignKeys = [
-        ForeignKey(
-            entity = UsuarioEntity::class,
-            parentColumns = ["id_usuario"],
-            childColumns = ["id_usuario"],
-            onDelete = ForeignKey.NO_ACTION,
-            onUpdate = ForeignKey.NO_ACTION
-        ),
-        ForeignKey(
-            entity = CatIncidenciasEntity::class,
-            parentColumns = ["id_incidencia"],
-            childColumns = ["id_incidencia"],
-            onDelete = ForeignKey.NO_ACTION,
-            onUpdate = ForeignKey.NO_ACTION
-        ),
-        ForeignKey(
-            entity = CatEstadoReporteEntity::class,
-            parentColumns = ["id_estado"],
-            childColumns = ["id_estado"],
-            onDelete = ForeignKey.NO_ACTION,
-            onUpdate = ForeignKey.NO_ACTION
-        )
-    ],
     indices = [
         Index("id_usuario"),
         Index("id_incidencia"),
@@ -38,9 +14,9 @@ import androidx.room.PrimaryKey
     ]
 )
 data class ReporteEntity(
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     @ColumnInfo(name = "id_reporte")
-    val idReporte: Int = 0,
+    val idReporte: Int,
 
     @ColumnInfo(name = "titulo")
     val titulo: String,
@@ -58,7 +34,7 @@ data class ReporteEntity(
     val longitud: Double,
 
     @ColumnInfo(name = "fecha_reporte")
-    val fechaReporte: Long? = System.currentTimeMillis(),
+    val fechaReporte: String? = null,
 
     @ColumnInfo(name = "id_usuario")
     val idUsuario: Int? = null,

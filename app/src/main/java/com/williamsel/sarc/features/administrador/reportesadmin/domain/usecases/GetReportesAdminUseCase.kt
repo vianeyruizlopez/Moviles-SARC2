@@ -24,10 +24,7 @@ class GetReportesAdminUseCase @Inject constructor(
             } else {
                 reportes
             }
-            
-            val ordenados = filtrados.sortedByDescending { it.fecha }
-            
-            Result.success(ordenados)
+            Result.success(filtrados)
         } catch (e: Exception) {
             Result.failure(e)
         }

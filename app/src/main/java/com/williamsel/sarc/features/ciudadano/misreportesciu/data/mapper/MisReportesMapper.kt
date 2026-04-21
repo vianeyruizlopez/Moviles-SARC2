@@ -38,15 +38,28 @@ fun ReporteEntity.toDomain(
         3    -> "Resuelto"
         else -> "Desconocido"
     }
-): ReporteCiudadano = ReporteCiudadano(
-    idReporte = idReporte,
-    titulo = titulo,
-    descripcion = descripcion,
-    ubicacion = ubicacion ?: "",
-    fechaReporte = fechaReporte ?: 0L,
-    incidencia = nombreIncidencia,
-    estado = nombreEstado,
-    idEstado = idEstado ?: 1,
-    puedeEditar = idEstado == 1,
-    imagen = imagen
-)
+): ReporteCiudadano {
+    val timestamp = try {
+        if (fechaReporte != null) {
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            sdf.parse(fechaReporte)?.time ?: 0L
+        } else {
+            0L
+        }
+    } catch (e: Exception) {
+        0L
+    }
+
+    return ReporteCiudadano(
+        idReporte = idReporte,
+        titulo = titulo,
+        descripcion = descripcion,
+        ubicacion = ubicacion ?: "",
+        fechaReporte = timestamp,
+        incidencia = nombreIncidencia,
+        estado = nombreEstado,
+        idEstado = idEstado ?: 1,
+        puedeEditar = idEstado == 1,
+        imagen = imagen
+    )
+}

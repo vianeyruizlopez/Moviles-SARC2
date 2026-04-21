@@ -6,7 +6,6 @@ import com.williamsel.sarc.features.administrador.reportesadmin.data.mapper.toDo
 import com.williamsel.sarc.features.administrador.reportesadmin.data.mapper.toEntity
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.entities.ReporteAdmin
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.repositories.ReportesAdminRepository
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class ReportesAdminRepositoryImpl @Inject constructor(
@@ -15,24 +14,23 @@ class ReportesAdminRepositoryImpl @Inject constructor(
 ) : ReportesAdminRepository {
 
     override suspend fun getReportes(estado: Int?, query: String?): List<ReporteAdmin> {
-        return try {
+        try {
             val remoteDtos = api.getReportes(estado, query)
-
-            //rooms
+            
             remoteDtos.forEach { dto ->
                 dao.insert(dto.toEntity())
             }
-            remoteDtos.map { it.toDomain() }
-            
         } catch (e: Exception) {
-            // si no hay red esta en el cacche por medio de rooms
-            val cachedEntities = dao.getAll().first()
 
-            if (cachedEntities.isNotEmpty()) {
-                cachedEntities.map { it.toDomain() }
-            } else {
-                throw e
-            }
+            e.printStackTrace()
+        }
+
+        val cachedEntities = dao.getAllList()
+        
+        return if (cachedEntities.isNotEmpty()) {
+            cachedEntities.map { it.toDomain() }
+        } else {
+            emptyList()
         }
     }
 }

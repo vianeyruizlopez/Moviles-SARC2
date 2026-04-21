@@ -5,24 +5,22 @@ import com.williamsel.sarc.features.administrador.reportesadmin.data.models.Repo
 import com.williamsel.sarc.features.administrador.reportesadmin.domain.entities.ReporteAdmin
 
 
- ///se convierte un DTO a una Entidad de Room para chache
 fun ReporteAdminDto.toEntity(): ReporteEntity {
     return ReporteEntity(
         idReporte = this.idReporte,
         titulo = this.titulo,
         descripcion = this.descripcion,
         imagen = this.imagen,
-        latitud = this.latitud ?: 0.0,
-        longitud = this.longitud ?: 0.0,
+        latitud = this.latitud,
+        longitud = this.longitud,
         ubicacion = this.ubicacion,
         idEstado = this.idEstado,
         idIncidencia = this.idIncidencia,
         idUsuario = this.idUsuario,
-        fechaReporte = System.currentTimeMillis()
+        fechaReporte = this.fecha
     )
 }
 
-//conierte de entidad de room a dominio
 fun ReporteEntity.toDomain(): ReporteAdmin {
     return ReporteAdmin(
         idReporte = this.idReporte,
@@ -38,11 +36,10 @@ fun ReporteEntity.toDomain(): ReporteAdmin {
         longitud = this.longitud,
         idEstado = this.idEstado ?: 1,
         imagen = this.imagen,
-        fecha = "Offline"
+        fecha = this.fechaReporte ?: "Sin fecha"
     )
 }
 
-///conviette de DTO a dominio cuando se tenga internet
 fun ReporteAdminDto.toDomain(): ReporteAdmin {
     return ReporteAdmin(
         idReporte = this.idReporte,

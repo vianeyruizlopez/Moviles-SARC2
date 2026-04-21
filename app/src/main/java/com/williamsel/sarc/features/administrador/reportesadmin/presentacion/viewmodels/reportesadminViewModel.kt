@@ -72,9 +72,16 @@ class ReportesAdminViewModel @Inject constructor(
     )
 
     private fun formatFecha(fecha: String): String = try {
-        val inputFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        val dt = LocalDateTime.parse(fecha, inputFormatter)
-        dt.format(DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es", "MX")))
+        if (fecha.isBlank() || fecha == "Offline") {
+            fecha
+        } else {
+            val dt = try {
+                LocalDateTime.parse(fecha) 
+            } catch (e: Exception) {
+                LocalDateTime.parse(fecha.replace(" ", "T"))
+            }
+            dt.format(DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es", "MX")))
+        }
     } catch (e: Exception) { 
         fecha
     }

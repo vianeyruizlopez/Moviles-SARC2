@@ -10,6 +10,9 @@ interface ReporteDao {
     @Query("SELECT * FROM reporte ORDER BY fecha_reporte DESC")
     fun getAll(): Flow<List<ReporteEntity>>
 
+    @Query("SELECT * FROM reporte ORDER BY fecha_reporte DESC")
+    suspend fun getAllList(): List<ReporteEntity>
+
     @Query("SELECT * FROM reporte WHERE id_reporte = :id")
     suspend fun getById(id: Int): ReporteEntity?
 
