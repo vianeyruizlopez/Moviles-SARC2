@@ -5,9 +5,10 @@ import com.google.gson.annotations.SerializedName
 data class ReporteAdminDto(
     @SerializedName("id_reporte")       val idReporte: Int,
     @SerializedName("id_usuario")       val idUsuario: Int,
-    @SerializedName("nombreUsuario")    val nombreUsuario: String,
-    @SerializedName("nombreIncidencia") val nombreIncidencia: String,
-    @SerializedName("nombreEstado")     val nombreEstado: String,
+    @SerializedName("nombre_usuario")    val nombreUsuario: String,
+    @SerializedName("nombre_incidencia") val nombreIncidencia: String,
+    @SerializedName("nombre_estado")     val nombreEstado: String,
+
     @SerializedName("id_incidencia")    val idIncidencia: Int,
     @SerializedName("titulo")           val titulo: String,
     @SerializedName("descripcion")      val descripcion: String,

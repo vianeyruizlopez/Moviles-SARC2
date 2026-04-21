@@ -16,23 +16,17 @@ class ReportesAdminRepositoryImpl @Inject constructor(
     override suspend fun getReportes(estado: Int?, query: String?): List<ReporteAdmin> {
         try {
             val remoteDtos = api.getReportes(estado, query)
-            
-            remoteDtos.forEach { dto ->
-                dao.insert(dto.toEntity())
-            }
+            remoteDtos.forEach { dao.insert(it.toEntity()) }
         } catch (e: Exception) {
-
             e.printStackTrace()
         }
 
-        val cachedEntities = dao.getAllList()
-        
-        val reportesDomain = cachedEntities.map { it.toDomain() }
-
-        return if (estado != null && estado != 0) {
-            reportesDomain.filter { it.idEstado == estado }
+        val cachedEntities = if (estado != null && estado != 0) {
+            dao.getListByEstado(estado)
         } else {
-            reportesDomain
+            dao.getAllList()
         }
+
+        return cachedEntities.map { it.toDomain() }
     }
 }

@@ -21,7 +21,7 @@ import com.williamsel.sarc.core.database.entities.UsuarioEntity
         CatEstadoReporteEntity::class,
         ReporteEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class SarcDatabase : RoomDatabase() {

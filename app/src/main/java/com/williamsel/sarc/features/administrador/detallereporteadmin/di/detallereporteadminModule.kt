@@ -1,5 +1,6 @@
 package com.williamsel.sarc.features.administrador.detallereporteadmin.di
 
+import com.williamsel.sarc.core.database.dao.ReporteDao
 import com.williamsel.sarc.features.administrador.detallereporteadmin.data.datasource.api.DetalleReporteAdminApi
 import com.williamsel.sarc.features.administrador.detallereporteadmin.data.repositories.DetalleReporteAdminRepositoryImpl
 import com.williamsel.sarc.features.administrador.detallereporteadmin.domain.repositories.DetalleReporteAdminRepository
@@ -23,8 +24,9 @@ object DetalleReporteAdminModule {
     @Provides
     @Singleton
     fun provideDetalleReporteAdminRepository(
-        api: DetalleReporteAdminApi
+        api: DetalleReporteAdminApi,
+        dao: ReporteDao
     ): DetalleReporteAdminRepository {
-        return DetalleReporteAdminRepositoryImpl(api)
+        return DetalleReporteAdminRepositoryImpl(api, dao)
     }
 }

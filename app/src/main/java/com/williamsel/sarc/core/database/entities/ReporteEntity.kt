@@ -38,12 +38,21 @@ data class ReporteEntity(
 
     @ColumnInfo(name = "id_usuario")
     val idUsuario: Int? = null,
+    
+    @ColumnInfo(name = "nombre_usuario")
+    val nombreUsuario: String? = null,
 
     @ColumnInfo(name = "id_incidencia")
     val idIncidencia: Int? = null,
+    
+    @ColumnInfo(name = "nombre_incidencia")
+    val nombreIncidencia: String? = null,
 
     @ColumnInfo(name = "id_estado")
     val idEstado: Int? = 1,
+    
+    @ColumnInfo(name = "nombre_estado")
+    val nombreEstado: String? = null,
 
     @ColumnInfo(name = "ubicacion")
     val ubicacion: String? = null

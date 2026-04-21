@@ -15,8 +15,11 @@ fun ReporteAdminDto.toEntity(): ReporteEntity {
         longitud = this.longitud,
         ubicacion = this.ubicacion,
         idEstado = this.idEstado,
+        nombreEstado = this.nombreEstado, // Nuevo
         idIncidencia = this.idIncidencia,
+        nombreIncidencia = this.nombreIncidencia, // Nuevo
         idUsuario = this.idUsuario,
+        nombreUsuario = this.nombreUsuario, // Nuevo
         fechaReporte = this.fecha
     )
 }
@@ -25,9 +28,9 @@ fun ReporteEntity.toDomain(): ReporteAdmin {
     return ReporteAdmin(
         idReporte = this.idReporte,
         idUsuario = this.idUsuario ?: 0,
-        nombreUsuario = "Usuario (Caché)",
-        nombreIncidencia = "Reporte",
-        nombreEstado = "Cargado offline",
+        nombreUsuario = this.nombreUsuario ?: "Usuario (Caché)",
+        nombreIncidencia = this.nombreIncidencia ?: "Reporte",
+        nombreEstado = this.nombreEstado ?: "Cargado offline",
         idIncidencia = this.idIncidencia ?: 0,
         titulo = this.titulo,
         descripcion = this.descripcion,

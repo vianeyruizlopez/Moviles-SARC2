@@ -25,6 +25,9 @@ interface ReporteDao {
     @Query("SELECT * FROM reporte WHERE id_incidencia = :idIncidencia ORDER BY fecha_reporte DESC")
     fun getByIncidencia(idIncidencia: Int): Flow<List<ReporteEntity>>
 
+    @Query("SELECT * FROM reporte WHERE (:idEstado IS NULL OR :idEstado = 0 OR id_estado = :idEstado) ORDER BY fecha_reporte DESC")
+    suspend fun getListByEstado(idEstado: Int?): List<ReporteEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(reporte: ReporteEntity): Long
 
