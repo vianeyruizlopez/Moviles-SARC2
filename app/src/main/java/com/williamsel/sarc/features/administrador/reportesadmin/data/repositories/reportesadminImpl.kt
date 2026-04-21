@@ -27,10 +27,12 @@ class ReportesAdminRepositoryImpl @Inject constructor(
 
         val cachedEntities = dao.getAllList()
         
-        return if (cachedEntities.isNotEmpty()) {
-            cachedEntities.map { it.toDomain() }
+        val reportesDomain = cachedEntities.map { it.toDomain() }
+
+        return if (estado != null && estado != 0) {
+            reportesDomain.filter { it.idEstado == estado }
         } else {
-            emptyList()
+            reportesDomain
         }
     }
 }
