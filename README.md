@@ -17,11 +17,8 @@
 - [Roles del sistema](#-roles-del-sistema)
 - [Módulos](#-módulos)
 - [Stack tecnológico](#-stack-tecnológico)
-- [Instalación](#-instalación)
 - [Estructura del proyecto](#-estructura-del-proyecto)
-- [Capturas de pantalla](#-capturas-de-pantalla)
 - [Autores](#-autores)
-- [Licencia](#-licencia)
 
 ---
 
@@ -88,22 +85,6 @@ Consulta del estado actual e historial completo de reportes por ciudadano o admi
 
 ---
 
-## Instalación
-
-```bash
-# Clonar el repositorio
-git clone https://github.com/Williams-Espinosa/SARC.git
-
-# Entrar al directorio
-cd SARC
-
-# Abrir el proyecto en Android Studio
-# File > Open > seleccionar la carpeta del proyecto
-
-# Sincronizar dependencias con Gradle
-./gradlew build
-```
-
 > **Requisitos:** Android Studio Hedgehog o superior · JDK 17 · Android SDK 26+
 
 ---
@@ -132,13 +113,6 @@ SARC/
 ```
 
 ---
-
-## Capturas de pantalla
-
-> *Próximamente...*
-
----
-
 ## Autores
 
 | Nombre | Rol |
